@@ -95,6 +95,24 @@ defmodule Mix.Tasks.Dialyzer.JsonTest do
     end
   end
 
+  describe "count_by_fix_hint/1" do
+    test "counts warnings by fix hint" do
+      warnings = [
+        %{fix_hint: "code", warning_type: "no_return"},
+        %{fix_hint: "code", warning_type: "call"},
+        %{fix_hint: "spec", warning_type: "contract_diff"}
+      ]
+
+      result = Task.count_by_fix_hint(warnings)
+
+      assert result == %{"code" => 2, "spec" => 1}
+    end
+
+    test "returns empty map for no warnings" do
+      assert Task.count_by_fix_hint([]) == %{}
+    end
+  end
+
   describe "encode_output/2" do
     setup do
       # Create some mock raw warnings that will be processed by WarningEncoder
@@ -113,6 +131,7 @@ defmodule Mix.Tasks.Dialyzer.JsonTest do
       assert Map.has_key?(result, :summary)
       assert result.summary.total == 2
       assert result.summary.by_type == %{"no_return" => 2}
+      assert result.summary.by_fix_hint == %{"code" => 2}
     end
 
     test "with --summary-only excludes warnings", %{raw_warnings: raw_warnings} do
@@ -144,6 +163,7 @@ defmodule Mix.Tasks.Dialyzer.JsonTest do
       assert result.warnings == []
       assert result.summary.total == 0
       assert result.summary.by_type == %{}
+      assert result.summary.by_fix_hint == %{}
     end
   end
 end

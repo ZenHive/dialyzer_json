@@ -8,7 +8,7 @@
 
 ## 🎯 Current Focus
 
-**Phase 1: Core Foundation** — Complete. Basic JSON output working.
+**Phase 2: Warning Classification** — Complete. `fix_hint` field added to all warnings.
 
 ### ✅ Recently Completed
 | Task | Description | Notes |
@@ -17,33 +17,17 @@
 | Quiet mode | `--quiet` suppresses non-JSON output | Clean piping to jq |
 | Summary mode | `--summary-only` for counts without details | Quick health check |
 | Group by warning | `--group-by-warning` clusters similar warnings | Pattern identification |
+| Warning classification | All 47 warning types classified | `DialyzerJson.FixHint` module |
+| fix_hint in output | Each warning has `fix_hint` field | Summary includes `by_fix_hint` |
 
 ---
 
-## Phase 2: Warning Classification [D:5/B:8 → Priority:1.6] 🚀
+## Phase 2: Warning Classification ✅
 
-Add `fix_hint` field to help AI editors prioritize which warnings to fix first.
+Added `fix_hint` field to help AI editors prioritize warnings.
 
-### Task 1: Classify warning types into fix categories [D:4/B:8 → Priority:2.0] 🎯
-Research dialyzer's ~47 warning types and classify each into one of three categories:
-- `"spec"` - Likely needs typespec fix (contract issues, return type mismatches)
-- `"code"` - Likely a real bug (unreachable code, pattern match failures)
-- `"pattern"` - Common safe-to-ignore pattern (callback info missing, etc.)
-
-Output a mapping module that returns the category for each warning type. Include rationale comments for non-obvious classifications.
-
-Success criteria:
-- [ ] All warning types from `Dialyxir.Warnings` are classified
-- [ ] Classification logic is in a dedicated module
-- [ ] Tests verify classification for representative warning types
-
-### Task 2: Add fix_hint to JSON output [D:2/B:7 → Priority:3.5] 🎯
-Add `fix_hint` field to each warning in the JSON output using the classification from Task 1. Include in summary stats (counts by fix_hint type).
-
-Success criteria:
-- [ ] Each warning object has `fix_hint` field
-- [ ] Summary includes `by_fix_hint` counts
-- [ ] Tests verify fix_hint appears in output
+- **Task 1**: Classified all 47 dialyxir warning types into `"spec"`, `"code"`, `"pattern"` categories
+- **Task 2**: Added `fix_hint` to each warning and `by_fix_hint` to summary
 
 ---
 

@@ -27,7 +27,8 @@ defmodule Mix.Tasks.Dialyzer.Json do
         "warnings": [...],      // Array of warning objects
         "summary": {            // Summary statistics
           "total": 5,
-          "by_type": {"no_return": 2, "call": 3}
+          "by_type": {"no_return": 2, "call": 3},
+          "by_fix_hint": {"code": 4, "spec": 1}
         }
       }
 
@@ -41,8 +42,14 @@ defmodule Mix.Tasks.Dialyzer.Json do
         "module": "Foo",
         "warning_type": "no_return",
         "message": "Function has no local return",
-        "raw_message": "Function bar/2 has no local return."
+        "raw_message": "Function bar/2 has no local return.",
+        "fix_hint": "code"
       }
+
+  The `fix_hint` field indicates the likely fix category:
+  - `"spec"` - Likely needs typespec fix
+  - `"code"` - Likely a real bug
+  - `"pattern"` - Common safe-to-ignore pattern
   """
 
   use Mix.Task
@@ -83,10 +90,16 @@ defmodule Mix.Tasks.Dialyzer.Json do
     end
 
     # Exit with appropriate code
-    if warnings == [] or opts[:ignore_exit_status] do
-      :ok
-    else
-      Mix.raise("Dialyzer found #{length(warnings)} warning(s)")
+    cond do
+      warnings == [] or opts[:ignore_exit_status] ->
+        :ok
+
+      opts[:quiet] ->
+        # In quiet mode, exit silently - the exit code indicates failure
+        System.halt(2)
+
+      true ->
+        Mix.raise("Dialyzer found #{length(warnings)} warning(s)")
     end
   end
 
@@ -165,7 +178,8 @@ defmodule Mix.Tasks.Dialyzer.Json do
 
     summary = %{
       total: length(encoded_warnings),
-      by_type: count_by_type(encoded_warnings)
+      by_type: count_by_type(encoded_warnings),
+      by_fix_hint: count_by_fix_hint(encoded_warnings)
     }
 
     if opts[:summary_only] do
@@ -191,6 +205,17 @@ defmodule Mix.Tasks.Dialyzer.Json do
   def count_by_type(warnings) do
     Enum.reduce(warnings, %{}, fn warning, acc ->
       Map.update(acc, warning.warning_type, 1, &(&1 + 1))
+    end)
+  end
+
+  @doc false
+  # Counts warnings grouped by fix hint category
+  @spec count_by_fix_hint([WarningEncoder.encoded_warning()]) :: %{
+          String.t() => non_neg_integer()
+        }
+  def count_by_fix_hint(warnings) do
+    Enum.reduce(warnings, %{}, fn warning, acc ->
+      Map.update(acc, warning.fix_hint, 1, &(&1 + 1))
     end)
   end
 

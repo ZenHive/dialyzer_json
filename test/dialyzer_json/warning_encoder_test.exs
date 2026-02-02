@@ -65,6 +65,34 @@ defmodule DialyzerJson.WarningEncoderTest do
 
       assert result.function == nil
     end
+
+    test "includes fix_hint for code warnings" do
+      warning =
+        {:warn_return_no_exit, {~c"lib/foo.ex", 10}, {:no_return, [:only_normal, :bar, 2]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.fix_hint == "code"
+    end
+
+    test "includes fix_hint for spec warnings" do
+      warning =
+        {:warn_contract, {~c"lib/foo.ex", 10},
+         {:contract_diff, [:Mod, :func, 1, "contract", "sig"]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.fix_hint == "spec"
+    end
+
+    test "includes fix_hint for pattern warnings" do
+      # unused_fun is a pattern warning
+      warning = {:warn_unused, {~c"lib/foo.ex", 10}, {:unused_fun, [:my_func, 1]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.fix_hint == "pattern"
+    end
   end
 
   describe "encode_warnings/1" do

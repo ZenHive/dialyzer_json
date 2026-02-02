@@ -85,3 +85,32 @@ mix dialyzer          # Run dialyzer (once implemented)
 @include ~/.claude/includes/development-philosophy.md
 @include ~/.claude/includes/elixir-patterns.md
 @include ~/.claude/includes/library-design.md
+
+## Testing as Companion Library
+
+When testing dialyzer_json in another project (e.g., ccxt_ex):
+
+```elixir
+# In the other project's mix.exs
+{:dialyzer_json, path: "../dialyzer_json", only: [:dev, :test], runtime: false}
+```
+
+**NEVER force recompile dependencies:**
+- ❌ `mix deps.compile dialyzer_json --force` - Wastes time, unnecessary
+- ✅ Just run `mix dialyzer.json` - Mix handles recompilation automatically
+
+Mix detects source changes and recompiles only when needed. Trust it.
+
+## Git Commit Configuration
+
+**Configured**: 2026-02-02
+
+### Commit Message Format
+
+**Format**: conventional-commits
+
+#### Conventional Commits Template
+```
+<type>(<scope>): <description>
+```
+**Types**: feat, fix, docs, style, refactor, test, chore

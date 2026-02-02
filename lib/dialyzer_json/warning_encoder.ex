@@ -23,7 +23,8 @@ defmodule DialyzerJson.WarningEncoder do
           message: String.t(),
           raw_message: String.t(),
           function: String.t() | nil,
-          module: String.t() | nil
+          module: String.t() | nil,
+          fix_hint: String.t()
         }
 
   @doc """
@@ -66,7 +67,8 @@ defmodule DialyzerJson.WarningEncoder do
       message: format_message(warning_type, args),
       raw_message: format_raw_message(warning_type, args),
       function: extract_function(warning_type, args),
-      module: extract_module(warning_type, args)
+      module: extract_module(warning_type, args),
+      fix_hint: DialyzerJson.FixHint.classify(warning_type)
     }
   end
 

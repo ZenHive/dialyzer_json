@@ -23,7 +23,14 @@ defmodule DialyzerJson do
         "module": "Foo",
         "warning_type": "no_return",
         "message": "Function has no local return",
-        "raw_message": "Function bar/2 has no local return."
+        "raw_message": "Function bar/2 has no local return.",
+        "fix_hint": "code"
       }
+
+  The `fix_hint` field indicates the likely fix category:
+  - `"spec"` - Likely needs typespec fix
+  - `"code"` - Likely a real bug
+  - `"pattern"` - Common safe-to-ignore pattern
+  - `"unknown"` - Unrecognized warning type
   """
 end
