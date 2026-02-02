@@ -167,3 +167,37 @@ Completed roadmap tasks. For upcoming work, see [ROADMAP.md](ROADMAP.md).
 **Files modified:**
 - `lib/mix/tasks/dialyzer_json.ex` - Added flag parser, `group_by_file/1`, updated `encode_output/2` and `extract_warning_lines/1`
 - `test/mix/tasks/dialyzer_json_test.exs` - Added 8 new tests for flag parsing, grouping, and combinations
+
+---
+
+## Phase 5: Documentation & Polish
+
+### Tasks 10-11: hex.pm metadata and documentation
+**Completed** | Session 7
+
+**What was done:**
+- Added hex.pm package metadata to mix.exs (description, package, source_url)
+- Created AGENTS.md with AI editor quick reference guide
+- Task 11 was already complete - README has comprehensive "For AI Editors" section
+
+**hex.pm metadata:**
+| Field | Value |
+|-------|-------|
+| `description` | "AI-friendly JSON output for Dialyzer warnings..." |
+| `licenses` | MIT |
+| `links` | GitHub: https://github.com/ZenHive/dialyzer_json |
+| `files` | lib, .formatter.exs, mix.exs, README.md, CHANGELOG.md, LICENSE, AGENTS.md |
+
+**AGENTS.md sections:**
+- Start Here (default workflow)
+- When to Use (vs `mix dialyzer`)
+- Quick Reference (common commands)
+- Key Flags (table of all flags)
+- Fix Hint Guide (code/spec/pattern meanings)
+- Recommended Workflows (health check, find bugs, iterate)
+- Exit Codes (0 vs 2)
+- Tips (always use --quiet, jq patterns)
+
+**Files modified:**
+- `mix.exs` - Added `@source_url`, `description/0`, `package/0`
+- `AGENTS.md` - Created (new file)

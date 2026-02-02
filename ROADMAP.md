@@ -8,7 +8,7 @@
 
 ## 🎯 Current Focus
 
-**Phase 4: Output Enhancements** — Adding metadata, grouping options, and filtering.
+**Phase 5: Complete** — All planned features implemented. Ready for hex.pm release.
 
 ### ✅ Recently Completed
 | Task | Description | Notes |
@@ -106,20 +106,7 @@ Success criteria:
 
 ---
 
-## Phase 5: Documentation & Polish [D:2/B:5 → Priority:2.5] 🎯
+## Phase 5: Documentation & Polish ✅
 
-### Task 10: Add hex.pm package metadata [D:2/B:6 → Priority:3.0] 🎯
-Prepare for hex.pm publication. Add package metadata, description, links, and licenses to mix.exs.
-
-Success criteria:
-- [ ] `mix hex.build` succeeds
-- [ ] Package description is clear and useful
-- [ ] GitHub link included
-
-### Task 11: Write usage examples for AI editors [D:2/B:4 → Priority:2.0] 🎯
-Add examples to README showing how AI editors can use the JSON output. Include jq patterns for common queries.
-
-Success criteria:
-- [ ] README has "For AI Editors" section
-- [ ] jq examples for filtering by type, file, etc.
-- [ ] Example integration with Claude Code
+> 3 tasks complete. See [CHANGELOG.md](CHANGELOG.md#phase-5-documentation--polish) for details.
+> Added: hex.pm metadata, AGENTS.md, comprehensive README examples.

@@ -1,6 +1,8 @@
 defmodule DialyzerJson.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/ZenHive/dialyzer_json"
+
   def project do
     [
       app: :dialyzer_json,
@@ -8,7 +10,10 @@ defmodule DialyzerJson.MixProject do
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      dialyzer: dialyzer()
+      dialyzer: dialyzer(),
+      description: description(),
+      package: package(),
+      source_url: @source_url
     ]
   end
 
@@ -19,6 +24,18 @@ defmodule DialyzerJson.MixProject do
   defp dialyzer do
     [
       plt_add_apps: [:mix, :dialyzer, :dialyxir]
+    ]
+  end
+
+  defp description do
+    "AI-friendly JSON output for Dialyzer warnings. Structured output for Claude Code and similar AI editors."
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => @source_url},
+      files: ~w(lib .formatter.exs mix.exs README.md CHANGELOG.md LICENSE AGENTS.md)
     ]
   end
 
@@ -39,6 +56,7 @@ defmodule DialyzerJson.MixProject do
       {:doctor, "~> 0.21", only: [:dev, :test], runtime: false},
       {:styler, "~> 1.0", only: [:dev, :test], runtime: false},
       {:ex_unit_json, "~> 0.3", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.35", only: :dev, runtime: false},
       {:tidewave, "~> 0.1", only: :dev},
       {:bandit, "~> 1.0", only: :dev}
     ]
