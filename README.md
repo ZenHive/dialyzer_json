@@ -54,6 +54,13 @@ mix dialyzer.json --output warnings.json
 
 # Ignore exit status (don't fail on warnings)
 mix dialyzer.json --ignore-exit-status
+
+# Compact JSONL output (one warning per line)
+mix dialyzer.json --compact
+
+# Filter by warning type (repeatable)
+mix dialyzer.json --filter-type no_return
+mix dialyzer.json --filter-type no_return --filter-type call
 ```
 
 ## Output Format
@@ -131,6 +138,26 @@ mix dialyzer.json --quiet | jq '.summary.by_type | to_entries | sort_by(-.value)
 
 ```bash
 mix dialyzer.json --quiet | jq '.warnings[] | select(.file == "lib/my_module.ex")'
+```
+
+### Filter by Warning Type (no jq needed)
+
+```bash
+# Only no_return warnings
+mix dialyzer.json --quiet --filter-type no_return
+
+# Multiple types (OR logic)
+mix dialyzer.json --quiet --filter-type no_return --filter-type call
+```
+
+### Compact JSONL Output (for streaming/large sets)
+
+```bash
+# One warning per line - great for wc, grep, head, tail
+mix dialyzer.json --quiet --compact | wc -l
+
+# Process line by line
+mix dialyzer.json --quiet --compact | while read line; do echo "$line" | jq '.file'; done
 ```
 
 ### Exit Codes

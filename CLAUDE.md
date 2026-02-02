@@ -77,6 +77,34 @@ mix format            # Format code
 mix dialyzer.json     # Run dialyzer with JSON output
 ```
 
+## Private Function Documentation
+
+Private functions (`defp`) must have `@doc false` and a comment explaining their purpose:
+
+```elixir
+# ✅ Correct: @doc false + explanatory comment
+@doc false
+# Normalizes the input map by converting string keys to atoms
+defp normalize_input(map) do
+  Map.new(map, fn {k, v} -> {String.to_existing_atom(k), v} end)
+end
+
+# ✅ Correct: trivial one-liners can skip the comment
+@doc false
+defp add(a, b), do: a + b
+
+# ❌ Wrong: missing @doc false and comment
+defp normalize_input(map) do
+  Map.new(map, fn {k, v} -> {String.to_existing_atom(k), v} end)
+end
+```
+
+**Why `@doc false`?** Explicitly marks the function as intentionally undocumented (not forgotten). ExDoc won't generate docs for it.
+
+**Why a comment?** Future readers (including Claude) understand the function's purpose without reading the implementation.
+
+**Exception:** Trivial one-liner helpers don't need comments - the code is self-documenting.
+
 @include ~/.claude/includes/across-instances.md
 @include ~/.claude/includes/critical-rules.md
 @include ~/.claude/includes/task-prioritization.md

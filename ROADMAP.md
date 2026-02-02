@@ -8,11 +8,20 @@
 
 ## 🎯 Current Focus
 
-**Phase 3: Better Metadata Extraction** — Complete. Module and function extraction for all warning types.
+**Phase 4: Output Enhancements** — Adding metadata, grouping options, and filtering.
+
+### 📋 Next Up (by priority)
+| Task | Priority | Description |
+|------|----------|-------------|
+| Task 6 | 3.0 🎯 | Map `exact_compare` → `"code"` |
+| Task 5 | 2.5 🎯 | Top-level metadata (versions, schema, timestamp) |
+| Task 7 | 1.3 📋 | `--group-by-file` flag |
 
 ### ✅ Recently Completed
 | Task | Description | Notes |
 |------|-------------|-------|
+| Task 8 | `--compact` JSONL output | One warning per line |
+| Task 9 | `--filter-type` flag | Repeatable, OR logic |
 | Basic JSON output | `mix dialyzer.json` outputs warnings as JSON | Reuses dialyxir PLT |
 | Quiet mode | `--quiet` suppresses non-JSON output | Clean piping to jq |
 | Summary mode | `--summary-only` for counts without details | Quick health check |
@@ -41,29 +50,69 @@ Extended module and function extraction to cover all warning types.
 
 ---
 
-## Phase 4: Output Enhancements [D:3/B:4 → Priority:1.3] 📋
+## Phase 4: Output Enhancements
 
-### Task 5: Add --compact flag for JSONL output [D:3/B:4 → Priority:1.3] 📋
+### Task 5: Add top-level metadata to JSON output [D:2/B:5 → Priority:2.5] 🎯
+Add metadata fields to the root JSON object for better tooling integration.
+
+Fields to add:
+- `schema_version`: e.g. "1.0" (for future compatibility)
+- `dialyzer_version`: from `:dialyzer` app version
+- `elixir_version`: from `System.version()`
+- `otp_version`: from `:erlang.system_info(:otp_release)`
+- `run_at`: ISO8601 timestamp (optional, include by default)
+
+Success criteria:
+- [ ] All version fields present in output
+- [ ] `run_at` is valid ISO8601 format
+- [ ] Existing `warnings` and `summary` structure unchanged
+
+### Task 6: Extend fix_hint mapping for exact_compare [D:1/B:3 → Priority:3.0] 🎯
+Map `exact_compare` warning type to `"code"` (currently falls through to unknown). These are actionable warnings about `==` vs `===` comparisons.
+
+Success criteria:
+- [ ] `exact_compare` → `"code"` in FixHint module
+- [ ] Test covers the mapping
+
+### Task 7: Add --group-by-file flag [D:3/B:4 → Priority:1.3] 📋
+Add `--group-by-file` flag to group warnings by file path instead of warning type.
+
+Output format:
+```json
+{
+  "groups": [
+    { "file": "lib/foo.ex", "count": 3, "warnings": [...] }
+  ],
+  "summary": { ... }
+}
+```
+
+Success criteria:
+- [ ] `--group-by-file` groups warnings by file
+- [ ] Each group has `file`, `count`, and `warnings` fields
+- [ ] Default output (flat warnings) unchanged
+
+### Task 8: Add --compact flag for JSONL output ✅
 Add `--compact` flag that outputs one JSON object per line (JSONL format) instead of a single JSON array. Useful for streaming large warning sets.
 
 Success criteria:
-- [ ] `--compact` outputs one warning per line
-- [ ] Each line is valid JSON
-- [ ] No trailing summary in compact mode (or separate line)
+- [x] `--compact` outputs one warning per line
+- [x] Each line is valid JSON
+- [x] Summary on final line in compact mode
 
-### Task 6: Add --filter-type flag [D:2/B:3 → Priority:1.5] 🚀
+### Task 9: Add --filter-type flag ✅
 Add `--filter-type TYPE` flag to output only warnings of a specific type. Can be repeated for multiple types.
 
 Success criteria:
-- [ ] `--filter-type no_return` shows only no_return warnings
-- [ ] Multiple `--filter-type` flags combine with OR logic
-- [ ] Summary reflects filtered count
+- [x] `--filter-type no_return` shows only no_return warnings
+- [x] Multiple `--filter-type` flags combine with OR logic
+- [x] Summary reflects filtered count
 
 ---
 
 ## Phase 5: Documentation & Polish [D:2/B:5 → Priority:2.5] 🎯
 
-### Task 7: Add hex.pm package metadata [D:2/B:6 → Priority:3.0] 🎯
+### Task 10: Add hex.pm package metadata [D:2/B:6 → Priority:3.0] 🎯
 Prepare for hex.pm publication. Add package metadata, description, links, and licenses to mix.exs.
 
 Success criteria:
@@ -71,7 +120,7 @@ Success criteria:
 - [ ] Package description is clear and useful
 - [ ] GitHub link included
 
-### Task 8: Write usage examples for AI editors [D:2/B:4 → Priority:2.0] 🎯
+### Task 11: Write usage examples for AI editors [D:2/B:4 → Priority:2.0] 🎯
 Add examples to README showing how AI editors can use the JSON output. Include jq patterns for common queries.
 
 Success criteria:

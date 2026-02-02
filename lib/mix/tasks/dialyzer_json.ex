@@ -18,6 +18,8 @@ defmodule Mix.Tasks.Dialyzer.Json do
     * `--summary-only` - Output only counts by warning type, no details
     * `--group-by-warning` - Group warnings by type in output
     * `--output FILE` - Write JSON to file instead of stdout
+    * `--compact` - Output as JSONL (one JSON object per line)
+    * `--filter-type TYPE` - Only include warnings of TYPE (can be repeated)
 
   ## Output Format
 
@@ -109,7 +111,10 @@ defmodule Mix.Tasks.Dialyzer.Json do
   @doc false
   # Parses command-line arguments into options keyword list
   @spec extract_opts([String.t()]) :: {keyword(), [String.t()]}
-  def extract_opts(args), do: do_extract_opts(args, [], [])
+  def extract_opts(args) do
+    {opts, remaining} = do_extract_opts(args, [], [])
+    {merge_list_opts(opts), remaining}
+  end
 
   defp do_extract_opts([], opts, remaining) do
     {Enum.reverse(opts), Enum.reverse(remaining)}
@@ -135,8 +140,30 @@ defmodule Mix.Tasks.Dialyzer.Json do
     do_extract_opts(rest, [{:ignore_exit_status, true} | opts], remaining)
   end
 
+  defp do_extract_opts(["--compact" | rest], opts, remaining) do
+    do_extract_opts(rest, [{:compact, true} | opts], remaining)
+  end
+
+  defp do_extract_opts(["--filter-type", type | rest], opts, remaining) do
+    do_extract_opts(rest, [{:filter_type, type} | opts], remaining)
+  end
+
   defp do_extract_opts([arg | rest], opts, remaining) do
     do_extract_opts(rest, opts, [arg | remaining])
+  end
+
+  @doc false
+  # Collects repeated CLI options (like multiple --filter-type flags) into a single list value.
+  # E.g., [{:filter_type, "a"}, {:filter_type, "b"}] -> [{:filter_type, ["a", "b"]}]
+  @spec merge_list_opts(keyword()) :: keyword()
+  defp merge_list_opts(opts) do
+    {filter_types, other_opts} = Keyword.pop_values(opts, :filter_type)
+
+    if filter_types == [] do
+      other_opts
+    else
+      [{:filter_type, filter_types} | other_opts]
+    end
   end
 
   @doc false
@@ -177,7 +204,10 @@ defmodule Mix.Tasks.Dialyzer.Json do
   # Transforms raw warnings into JSON-ready output structure based on options
   @spec encode_output([WarningEncoder.warning()], keyword()) :: map()
   def encode_output(warnings, opts) do
-    encoded_warnings = WarningEncoder.encode_warnings(warnings)
+    encoded_warnings =
+      warnings
+      |> WarningEncoder.encode_warnings()
+      |> filter_warnings(opts[:filter_type])
 
     summary = %{
       total: length(encoded_warnings),
@@ -200,6 +230,17 @@ defmodule Mix.Tasks.Dialyzer.Json do
         summary: summary
       }
     end
+  end
+
+  @doc false
+  # Filters warnings to only include specified types
+  @spec filter_warnings([WarningEncoder.encoded_warning()], [String.t()] | nil) ::
+          [WarningEncoder.encoded_warning()]
+  def filter_warnings(warnings, nil), do: warnings
+  def filter_warnings(warnings, []), do: warnings
+
+  def filter_warnings(warnings, types) when is_list(types) do
+    Enum.filter(warnings, &(&1.warning_type in types))
   end
 
   @doc false
@@ -235,14 +276,52 @@ defmodule Mix.Tasks.Dialyzer.Json do
   # Outputs JSON to stdout or file based on options
   @spec output_json(map(), keyword()) :: :ok
   defp output_json(data, opts) do
-    json = Jason.encode!(data, pretty: true)
+    output =
+      if opts[:compact] do
+        build_compact_output(data)
+      else
+        Jason.encode!(data, pretty: true)
+      end
 
     case opts[:output] do
-      nil -> IO.puts(json)
-      path -> File.write!(path, json <> "\n")
+      nil -> IO.puts(output)
+      path -> File.write!(path, output <> "\n")
     end
 
     :ok
+  end
+
+  @doc false
+  # Builds JSONL output (one JSON object per line) for streaming/piping.
+  # Each warning becomes a single JSON line, with summary as the final line.
+  @spec build_compact_output(map()) :: String.t()
+  def build_compact_output(%{summary: summary} = data) do
+    warning_lines = extract_warning_lines(data)
+    summary_line = Jason.encode!(%{summary: summary})
+
+    (warning_lines ++ [summary_line])
+    |> Enum.join("\n")
+  end
+
+  @doc false
+  # Extracts individual warnings as JSON strings for JSONL output.
+  # Handles both flat lists and grouped maps (from --group-by-warning).
+  @spec extract_warning_lines(map()) :: [String.t()]
+  defp extract_warning_lines(%{warnings: warnings}) when is_list(warnings) do
+    Enum.map(warnings, &Jason.encode!/1)
+  end
+
+  defp extract_warning_lines(%{warnings: warnings}) when is_map(warnings) do
+    # Flatten grouped warnings back to individual lines
+    warnings
+    |> Map.values()
+    |> List.flatten()
+    |> Enum.map(&Jason.encode!/1)
+  end
+
+  defp extract_warning_lines(_no_warnings) do
+    # --summary-only mode, no warnings key
+    []
   end
 
   @doc false

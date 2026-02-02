@@ -80,3 +80,29 @@ Completed roadmap tasks. For upcoming work, see [ROADMAP.md](ROADMAP.md).
 - For callback warnings, `module` field contains the behaviour module (e.g., `GenServer`) since that's the relevant context
 - Added `format_module/1` helper to handle both atom and charlist module names
 - Used module attributes (`@contract_mfa_warnings`, `@callback_bfa_warnings`) to group similar patterns
+
+---
+
+## Phase 4: Output Enhancements
+
+### Tasks 8-9: CLI Enhancements (--compact and --filter-type)
+**Completed** | Session 4
+
+**What was done:**
+- Added `--compact` flag for JSONL output (one JSON object per line)
+- Added `--filter-type TYPE` flag to filter warnings by type (repeatable, OR logic)
+- Summary reflects filtered count when using `--filter-type`
+- Compact mode works with all other flags (`--summary-only`, `--group-by-warning`, `--filter-type`)
+
+**Flag interactions:**
+| Combination | Behavior |
+|-------------|----------|
+| `--compact` | JSONL: warnings + summary line |
+| `--compact --summary-only` | Summary line only |
+| `--compact --group-by-warning` | Warnings flattened to JSONL |
+| `--filter-type X` | Only X warnings |
+| `--filter-type X --filter-type Y` | X or Y (OR logic) |
+
+**Files modified:**
+- `lib/mix/tasks/dialyzer_json.ex` - Added parsing, filtering, JSONL formatting
+- `test/mix/tasks/dialyzer_json_test.exs` - 13 new tests for both flags
