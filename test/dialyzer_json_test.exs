@@ -1,8 +1,5 @@
 defmodule DialyzerJsonTest do
-  use ExUnit.Case
-  doctest DialyzerJson
+  use ExUnit.Case, async: true
 
-  test "greets the world" do
-    assert DialyzerJson.hello() == :world
-  end
+  doctest DialyzerJson
 end
