@@ -139,3 +139,31 @@ Completed roadmap tasks. For upcoming work, see [ROADMAP.md](ROADMAP.md).
 - `lib/dialyzer_json/fix_hint.ex` - Added `:exact_compare` to `@code_warnings`
 - `test/mix/tasks/dialyzer_json_test.exs` - Added metadata tests
 - `test/dialyzer_json/fix_hint_test.exs` - Added `:exact_compare` to test list
+
+### Task 7: Add --group-by-file flag
+**Completed** | Session 6
+
+**What was done:**
+- Added `--group-by-file` flag to group warnings by file path
+- Output uses `groups` key (array) instead of `warnings` key when this flag is used
+- Each group contains `file`, `count`, and `warnings` fields
+- Groups are sorted alphabetically by file path
+- Works with `--compact` mode (flattens groups to individual warning lines)
+- Works with `--filter-type` (filters applied before grouping)
+- Takes precedence over `--group-by-warning` when both specified
+
+**Output format with --group-by-file:**
+```json
+{
+  "metadata": { ... },
+  "groups": [
+    { "file": "lib/bar.ex", "count": 1, "warnings": [...] },
+    { "file": "lib/foo.ex", "count": 3, "warnings": [...] }
+  ],
+  "summary": { ... }
+}
+```
+
+**Files modified:**
+- `lib/mix/tasks/dialyzer_json.ex` - Added flag parser, `group_by_file/1`, updated `encode_output/2` and `extract_warning_lines/1`
+- `test/mix/tasks/dialyzer_json_test.exs` - Added 8 new tests for flag parsing, grouping, and combinations

@@ -49,6 +49,9 @@ mix dialyzer.json --summary-only
 # Group warnings by type
 mix dialyzer.json --group-by-warning
 
+# Group warnings by file
+mix dialyzer.json --group-by-file
+
 # Write to file
 mix dialyzer.json --output warnings.json
 
@@ -115,6 +118,32 @@ Full output includes metadata and summary:
 }
 ```
 
+With `--group-by-warning`, warnings are grouped by type:
+
+```json
+{
+  "metadata": { ... },
+  "warnings": {
+    "no_return": [...],
+    "call": [...]
+  },
+  "summary": { ... }
+}
+```
+
+With `--group-by-file`, warnings are grouped by file path:
+
+```json
+{
+  "metadata": { ... },
+  "groups": [
+    { "file": "lib/bar.ex", "count": 2, "warnings": [...] },
+    { "file": "lib/foo.ex", "count": 3, "warnings": [...] }
+  ],
+  "summary": { ... }
+}
+```
+
 ## For AI Editors
 
 ### Quick Health Check
@@ -132,7 +161,11 @@ mix dialyzer.json --quiet | jq '.warnings[] | select(.fix_hint == "code")'
 ### Warnings by File
 
 ```bash
-mix dialyzer.json --quiet | jq 'group_by(.file) | map({file: .[0].file, count: length})'
+# Built-in grouping (no jq needed)
+mix dialyzer.json --quiet --group-by-file
+
+# Or with jq for custom formatting
+mix dialyzer.json --quiet | jq '.warnings | group_by(.file) | map({file: .[0].file, count: length})'
 ```
 
 ### Most Common Warning Types

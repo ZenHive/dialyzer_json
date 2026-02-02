@@ -10,14 +10,10 @@
 
 **Phase 4: Output Enhancements** — Adding metadata, grouping options, and filtering.
 
-### 📋 Next Up (by priority)
-| Task | Priority | Description |
-|------|----------|-------------|
-| Task 7 | 1.3 📋 | `--group-by-file` flag |
-
 ### ✅ Recently Completed
 | Task | Description | Notes |
 |------|-------------|-------|
+| Task 7 | `--group-by-file` flag | Groups by file path, array of {file, count, warnings} |
 | Task 6 | `exact_compare` → `"code"` | 1-line fix |
 | Task 5 | Top-level metadata | schema_version, versions, timestamp |
 | Task 8 | `--compact` JSONL output | One warning per line |
@@ -74,7 +70,7 @@ Success criteria:
 - [x] `exact_compare` → `"code"` in FixHint module
 - [x] Test covers the mapping
 
-### Task 7: Add --group-by-file flag [D:3/B:4 → Priority:1.3] 📋
+### Task 7: Add --group-by-file flag ✅
 Add `--group-by-file` flag to group warnings by file path instead of warning type.
 
 Output format:
@@ -88,9 +84,9 @@ Output format:
 ```
 
 Success criteria:
-- [ ] `--group-by-file` groups warnings by file
-- [ ] Each group has `file`, `count`, and `warnings` fields
-- [ ] Default output (flat warnings) unchanged
+- [x] `--group-by-file` groups warnings by file
+- [x] Each group has `file`, `count`, and `warnings` fields
+- [x] Default output (flat warnings) unchanged
 
 ### Task 8: Add --compact flag for JSONL output ✅
 Add `--compact` flag that outputs one JSON object per line (JSONL format) instead of a single JSON array. Useful for streaming large warning sets.

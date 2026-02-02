@@ -17,6 +17,7 @@ defmodule Mix.Tasks.Dialyzer.Json do
     * `--quiet` - Suppress non-JSON output for clean piping
     * `--summary-only` - Output only counts by warning type, no details
     * `--group-by-warning` - Group warnings by type in output
+    * `--group-by-file` - Group warnings by file path in output
     * `--output FILE` - Write JSON to file instead of stdout
     * `--compact` - Output as JSONL (one JSON object per line)
     * `--filter-type TYPE` - Only include warnings of TYPE (can be repeated)
@@ -132,6 +133,10 @@ defmodule Mix.Tasks.Dialyzer.Json do
     do_extract_opts(rest, [{:group_by_warning, true} | opts], remaining)
   end
 
+  defp do_extract_opts(["--group-by-file" | rest], opts, remaining) do
+    do_extract_opts(rest, [{:group_by_file, true} | opts], remaining)
+  end
+
   defp do_extract_opts(["--output", path | rest], opts, remaining) do
     do_extract_opts(rest, [{:output, path} | opts], remaining)
   end
@@ -220,18 +225,28 @@ defmodule Mix.Tasks.Dialyzer.Json do
     if opts[:summary_only] do
       %{metadata: metadata, summary: summary}
     else
-      warnings_output =
-        if opts[:group_by_warning] do
-          group_by_type(encoded_warnings)
-        else
-          encoded_warnings
-        end
+      cond do
+        opts[:group_by_file] ->
+          %{
+            metadata: metadata,
+            groups: group_by_file(encoded_warnings),
+            summary: summary
+          }
 
-      %{
-        metadata: metadata,
-        warnings: warnings_output,
-        summary: summary
-      }
+        opts[:group_by_warning] ->
+          %{
+            metadata: metadata,
+            warnings: group_by_type(encoded_warnings),
+            summary: summary
+          }
+
+        true ->
+          %{
+            metadata: metadata,
+            warnings: encoded_warnings,
+            summary: summary
+          }
+      end
     end
   end
 
@@ -273,6 +288,24 @@ defmodule Mix.Tasks.Dialyzer.Json do
         }
   def group_by_type(warnings) do
     Enum.group_by(warnings, & &1.warning_type)
+  end
+
+  @doc false
+  # Groups warnings by file path into an array of objects with file, count, and warnings fields
+  @spec group_by_file([WarningEncoder.encoded_warning()]) :: [
+          %{
+            file: String.t(),
+            count: non_neg_integer(),
+            warnings: [WarningEncoder.encoded_warning()]
+          }
+        ]
+  def group_by_file(warnings) do
+    warnings
+    |> Enum.group_by(& &1.file)
+    |> Enum.map(fn {file, file_warnings} ->
+      %{file: file, count: length(file_warnings), warnings: file_warnings}
+    end)
+    |> Enum.sort_by(& &1.file)
   end
 
   @doc false
@@ -321,7 +354,7 @@ defmodule Mix.Tasks.Dialyzer.Json do
 
   @doc false
   # Extracts individual warnings as JSON strings for JSONL output.
-  # Handles both flat lists and grouped maps (from --group-by-warning).
+  # Handles flat lists, grouped maps (from --group-by-warning), and file groups (from --group-by-file).
   @spec extract_warning_lines(map()) :: [String.t()]
   defp extract_warning_lines(%{warnings: warnings}) when is_list(warnings) do
     Enum.map(warnings, &Jason.encode!/1)
@@ -335,8 +368,15 @@ defmodule Mix.Tasks.Dialyzer.Json do
     |> Enum.map(&Jason.encode!/1)
   end
 
+  defp extract_warning_lines(%{groups: groups}) when is_list(groups) do
+    # Flatten file groups back to individual warning lines
+    groups
+    |> Enum.flat_map(& &1.warnings)
+    |> Enum.map(&Jason.encode!/1)
+  end
+
   defp extract_warning_lines(_no_warnings) do
-    # --summary-only mode, no warnings key
+    # --summary-only mode, no warnings or groups key
     []
   end
 
