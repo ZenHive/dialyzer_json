@@ -95,10 +95,17 @@ The `fix_hint` field helps prioritize which warnings to fix:
 | `"pattern"` | Common safe-to-ignore | Often intentional - third-party behaviours, unused functions |
 | `"unknown"` | Unrecognized warning | Investigate manually |
 
-Full output includes a summary:
+Full output includes metadata and summary:
 
 ```json
 {
+  "metadata": {
+    "schema_version": "1.0",
+    "dialyzer_version": "5.4",
+    "elixir_version": "1.19.4",
+    "otp_version": "28",
+    "run_at": "2026-02-02T07:00:03.768447Z"
+  },
   "warnings": [...],
   "summary": {
     "total": 5,

@@ -215,8 +215,10 @@ defmodule Mix.Tasks.Dialyzer.Json do
       by_fix_hint: count_by_fix_hint(encoded_warnings)
     }
 
+    metadata = build_metadata()
+
     if opts[:summary_only] do
-      %{summary: summary}
+      %{metadata: metadata, summary: summary}
     else
       warnings_output =
         if opts[:group_by_warning] do
@@ -226,6 +228,7 @@ defmodule Mix.Tasks.Dialyzer.Json do
         end
 
       %{
+        metadata: metadata,
         warnings: warnings_output,
         summary: summary
       }
@@ -273,6 +276,19 @@ defmodule Mix.Tasks.Dialyzer.Json do
   end
 
   @doc false
+  # Builds metadata with version info and timestamp
+  @spec build_metadata() :: map()
+  def build_metadata do
+    %{
+      schema_version: "1.0",
+      dialyzer_version: to_string(Application.spec(:dialyzer, :vsn)),
+      elixir_version: System.version(),
+      otp_version: to_string(:erlang.system_info(:otp_release)),
+      run_at: DateTime.utc_now() |> DateTime.to_iso8601()
+    }
+  end
+
+  @doc false
   # Outputs JSON to stdout or file based on options
   @spec output_json(map(), keyword()) :: :ok
   defp output_json(data, opts) do
@@ -293,11 +309,11 @@ defmodule Mix.Tasks.Dialyzer.Json do
 
   @doc false
   # Builds JSONL output (one JSON object per line) for streaming/piping.
-  # Each warning becomes a single JSON line, with summary as the final line.
+  # Each warning becomes a single JSON line, with metadata and summary as the final line.
   @spec build_compact_output(map()) :: String.t()
-  def build_compact_output(%{summary: summary} = data) do
+  def build_compact_output(%{metadata: metadata, summary: summary} = data) do
     warning_lines = extract_warning_lines(data)
-    summary_line = Jason.encode!(%{summary: summary})
+    summary_line = Jason.encode!(%{metadata: metadata, summary: summary})
 
     (warning_lines ++ [summary_line])
     |> Enum.join("\n")

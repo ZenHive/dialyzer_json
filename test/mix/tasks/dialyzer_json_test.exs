@@ -187,6 +187,30 @@ defmodule Mix.Tasks.Dialyzer.JsonTest do
     end
   end
 
+  describe "build_metadata/0" do
+    test "returns metadata with all required fields" do
+      metadata = Task.build_metadata()
+
+      assert metadata.schema_version == "1.0"
+      assert is_binary(metadata.dialyzer_version)
+      assert is_binary(metadata.elixir_version)
+      assert is_binary(metadata.otp_version)
+      assert is_binary(metadata.run_at)
+    end
+
+    test "run_at is valid ISO8601 timestamp" do
+      metadata = Task.build_metadata()
+
+      assert {:ok, _datetime, _offset} = DateTime.from_iso8601(metadata.run_at)
+    end
+
+    test "elixir_version matches System.version()" do
+      metadata = Task.build_metadata()
+
+      assert metadata.elixir_version == System.version()
+    end
+  end
+
   describe "encode_output/2" do
     setup do
       # Create some mock raw warnings that will be processed by WarningEncoder
@@ -198,21 +222,27 @@ defmodule Mix.Tasks.Dialyzer.JsonTest do
       {:ok, raw_warnings: raw_warnings}
     end
 
-    test "includes warnings and summary by default", %{raw_warnings: raw_warnings} do
+    test "includes metadata, warnings and summary by default", %{raw_warnings: raw_warnings} do
       result = Task.encode_output(raw_warnings, [])
 
+      assert Map.has_key?(result, :metadata)
       assert Map.has_key?(result, :warnings)
       assert Map.has_key?(result, :summary)
+      assert result.metadata.schema_version == "1.0"
       assert result.summary.total == 2
       assert result.summary.by_type == %{"no_return" => 2}
       assert result.summary.by_fix_hint == %{"code" => 2}
     end
 
-    test "with --summary-only excludes warnings", %{raw_warnings: raw_warnings} do
+    test "with --summary-only excludes warnings but includes metadata", %{
+      raw_warnings: raw_warnings
+    } do
       result = Task.encode_output(raw_warnings, summary_only: true)
 
       refute Map.has_key?(result, :warnings)
+      assert Map.has_key?(result, :metadata)
       assert Map.has_key?(result, :summary)
+      assert result.metadata.schema_version == "1.0"
       assert result.summary.total == 2
     end
 
@@ -276,6 +306,7 @@ defmodule Mix.Tasks.Dialyzer.JsonTest do
   describe "build_compact_output/1" do
     test "with warnings produces JSONL" do
       data = %{
+        metadata: %{schema_version: "1.0", elixir_version: "1.15.0"},
         warnings: [
           %{warning_type: "no_return", file: "a.ex", line: 1},
           %{warning_type: "call", file: "b.ex", line: 2}
@@ -286,7 +317,7 @@ defmodule Mix.Tasks.Dialyzer.JsonTest do
       result = Task.build_compact_output(data)
       lines = String.split(result, "\n")
 
-      # Should have 3 lines: 2 warnings + 1 summary
+      # Should have 3 lines: 2 warnings + 1 summary with metadata
       assert length(lines) == 3
 
       # Each line should be valid JSON
@@ -294,13 +325,15 @@ defmodule Mix.Tasks.Dialyzer.JsonTest do
         assert {:ok, _} = Jason.decode(line), "Line is not valid JSON: #{line}"
       end)
 
-      # Last line should be the summary
+      # Last line should have both metadata and summary
       {:ok, last} = Jason.decode(List.last(lines))
+      assert Map.has_key?(last, "metadata")
       assert Map.has_key?(last, "summary")
     end
 
     test "with grouped warnings flattens to JSONL" do
       data = %{
+        metadata: %{schema_version: "1.0"},
         warnings: %{
           "no_return" => [
             %{warning_type: "no_return", file: "a.ex", line: 1},
@@ -313,21 +346,23 @@ defmodule Mix.Tasks.Dialyzer.JsonTest do
       result = Task.build_compact_output(data)
       lines = String.split(result, "\n")
 
-      # Should have 3 lines: 2 warnings + 1 summary
+      # Should have 3 lines: 2 warnings + 1 summary with metadata
       assert length(lines) == 3
     end
 
-    test "with summary-only outputs single line" do
+    test "with summary-only outputs single line with metadata" do
       data = %{
+        metadata: %{schema_version: "1.0", elixir_version: "1.15.0"},
         summary: %{total: 5, by_type: %{"no_return" => 3, "call" => 2}}
       }
 
       result = Task.build_compact_output(data)
       lines = String.split(result, "\n")
 
-      # Should have just the summary line
+      # Should have just the summary line with metadata
       assert length(lines) == 1
       {:ok, parsed} = Jason.decode(hd(lines))
+      assert Map.has_key?(parsed, "metadata")
       assert Map.has_key?(parsed, "summary")
     end
   end

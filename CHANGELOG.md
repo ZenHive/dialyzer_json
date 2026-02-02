@@ -106,3 +106,36 @@ Completed roadmap tasks. For upcoming work, see [ROADMAP.md](ROADMAP.md).
 **Files modified:**
 - `lib/mix/tasks/dialyzer_json.ex` - Added parsing, filtering, JSONL formatting
 - `test/mix/tasks/dialyzer_json_test.exs` - 13 new tests for both flags
+
+### Tasks 5-6: Metadata and exact_compare fix
+**Completed** | Session 5
+
+**What was done:**
+- Added top-level `metadata` field to all JSON output
+- Added `exact_compare` warning type to `"code"` classification
+
+**Metadata fields:**
+| Field | Source |
+|-------|--------|
+| `schema_version` | `"1.0"` (for future compatibility) |
+| `dialyzer_version` | `:dialyzer` app version |
+| `elixir_version` | `System.version()` |
+| `otp_version` | `:erlang.system_info(:otp_release)` |
+| `run_at` | ISO8601 timestamp |
+
+**Output structure now:**
+```json
+{
+  "metadata": { ... },
+  "warnings": [...],
+  "summary": { ... }
+}
+```
+
+**Compact mode:** Metadata included on the final summary line.
+
+**Files modified:**
+- `lib/mix/tasks/dialyzer_json.ex` - Added `build_metadata/0`, updated `encode_output/2` and `build_compact_output/1`
+- `lib/dialyzer_json/fix_hint.ex` - Added `:exact_compare` to `@code_warnings`
+- `test/mix/tasks/dialyzer_json_test.exs` - Added metadata tests
+- `test/dialyzer_json/fix_hint_test.exs` - Added `:exact_compare` to test list

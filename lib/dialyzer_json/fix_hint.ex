@@ -14,7 +14,11 @@ defmodule DialyzerJson.FixHint do
     third-party code (e.g., missing behaviour info, unused functions).
   """
 
-  @typedoc "Fix hint category"
+  @typedoc """
+  Fix hint category string.
+
+  Possible values: `"spec"`, `"code"`, `"pattern"`, `"unknown"`
+  """
   @type hint :: String.t()
 
   # Contract/typespec issues - the @spec needs adjustment
@@ -48,6 +52,7 @@ defmodule DialyzerJson.FixHint do
     :unknown_type,
     # Guard/pattern failures - logic errors
     :exact_eq,
+    :exact_compare,
     :guard_fail,
     :guard_fail_pat,
     :neg_guard_fail,

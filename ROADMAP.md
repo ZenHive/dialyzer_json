@@ -13,13 +13,13 @@
 ### 📋 Next Up (by priority)
 | Task | Priority | Description |
 |------|----------|-------------|
-| Task 6 | 3.0 🎯 | Map `exact_compare` → `"code"` |
-| Task 5 | 2.5 🎯 | Top-level metadata (versions, schema, timestamp) |
 | Task 7 | 1.3 📋 | `--group-by-file` flag |
 
 ### ✅ Recently Completed
 | Task | Description | Notes |
 |------|-------------|-------|
+| Task 6 | `exact_compare` → `"code"` | 1-line fix |
+| Task 5 | Top-level metadata | schema_version, versions, timestamp |
 | Task 8 | `--compact` JSONL output | One warning per line |
 | Task 9 | `--filter-type` flag | Repeatable, OR logic |
 | Basic JSON output | `mix dialyzer.json` outputs warnings as JSON | Reuses dialyxir PLT |
@@ -52,7 +52,7 @@ Extended module and function extraction to cover all warning types.
 
 ## Phase 4: Output Enhancements
 
-### Task 5: Add top-level metadata to JSON output [D:2/B:5 → Priority:2.5] 🎯
+### Task 5: Add top-level metadata to JSON output ✅
 Add metadata fields to the root JSON object for better tooling integration.
 
 Fields to add:
@@ -63,16 +63,16 @@ Fields to add:
 - `run_at`: ISO8601 timestamp (optional, include by default)
 
 Success criteria:
-- [ ] All version fields present in output
-- [ ] `run_at` is valid ISO8601 format
-- [ ] Existing `warnings` and `summary` structure unchanged
+- [x] All version fields present in output
+- [x] `run_at` is valid ISO8601 format
+- [x] Existing `warnings` and `summary` structure unchanged
 
-### Task 6: Extend fix_hint mapping for exact_compare [D:1/B:3 → Priority:3.0] 🎯
+### Task 6: Extend fix_hint mapping for exact_compare ✅
 Map `exact_compare` warning type to `"code"` (currently falls through to unknown). These are actionable warnings about `==` vs `===` comparisons.
 
 Success criteria:
-- [ ] `exact_compare` → `"code"` in FixHint module
-- [ ] Test covers the mapping
+- [x] `exact_compare` → `"code"` in FixHint module
+- [x] Test covers the mapping
 
 ### Task 7: Add --group-by-file flag [D:3/B:4 → Priority:1.3] 📋
 Add `--group-by-file` flag to group warnings by file path instead of warning type.

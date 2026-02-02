@@ -31,6 +31,7 @@ defmodule DialyzerJson.FixHintTest do
         :call,
         :app_call,
         :apply,
+        :exact_compare,
         :guard_fail,
         :pattern_match,
         :no_return,
