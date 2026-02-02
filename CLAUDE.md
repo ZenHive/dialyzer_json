@@ -74,7 +74,7 @@ Research dialyxir's codebase before deciding. Start with the simplest approach t
 ```bash
 mix test              # Run tests
 mix format            # Format code
-mix dialyzer          # Run dialyzer (once implemented)
+mix dialyzer.json     # Run dialyzer with JSON output
 ```
 
 @include ~/.claude/includes/across-instances.md

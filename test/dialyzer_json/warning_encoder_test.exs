@@ -118,6 +118,125 @@ defmodule DialyzerJson.WarningEncoderTest do
 
       assert result.fix_hint == "pattern"
     end
+
+    test "extracts module and function for contract_diff warnings" do
+      # contract_diff: [module, function, arity, contract, signature]
+      warning =
+        {:warn_contract, {~c"lib/foo.ex", 10},
+         {:contract_diff, [MyModule, :my_func, 2, "contract", "signature"]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.module == "MyModule"
+      assert result.function == "my_func/2"
+      assert result.warning_type == "contract_diff"
+    end
+
+    test "extracts module and function for contract_subtype warnings" do
+      # contract_subtype: [module, function, arity, contract, signature]
+      warning =
+        {:warn_contract, {~c"lib/foo.ex", 10},
+         {:contract_subtype, [SomeModule, :process, 3, "contract", "signature"]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.module == "SomeModule"
+      assert result.function == "process/3"
+    end
+
+    test "extracts module and function for contract_range warnings" do
+      # contract_range has different order: [contract, module, function, arg_strings, line, return]
+      warning =
+        {:warn_contract, {~c"lib/foo.ex", 10},
+         {:contract_range, ["contract", MyModule, :handle, [:any, :any], 15, "return_type"]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.module == "MyModule"
+      assert result.function == "handle/2"
+    end
+
+    test "extracts module and function for extra_range warnings" do
+      # extra_range: [module, function, arity, extra_ranges, signature_range]
+      warning =
+        {:warn_contract, {~c"lib/foo.ex", 10}, {:extra_range, [Example, :ok, 0, "extra", "sig"]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.module == "Example"
+      assert result.function == "ok/0"
+    end
+
+    test "extracts behaviour and function for callback_type_mismatch warnings" do
+      # callback_type_mismatch: [behaviour, function, arity, fail_type, success_type]
+      warning =
+        {:warn_callback, {~c"lib/foo.ex", 10},
+         {:callback_type_mismatch, [GenServer, :handle_call, 3, "fail", "success"]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.module == "GenServer"
+      assert result.function == "handle_call/3"
+    end
+
+    test "extracts behaviour and function for callback_missing warnings" do
+      # callback_missing: [behaviour, function, arity]
+      warning =
+        {:warn_callback, {~c"lib/foo.ex", 10}, {:callback_missing, [GenServer, :init, 1]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.module == "GenServer"
+      assert result.function == "init/1"
+    end
+
+    test "extracts behaviour and function for callback_arg_type_mismatch warnings" do
+      # callback_arg_type_mismatch: [behaviour, function, arity, position, success_type, callback_type]
+      warning =
+        {:warn_callback, {~c"lib/foo.ex", 10},
+         {:callback_arg_type_mismatch, [MyBehaviour, :process, 2, 1, "actual", "expected"]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.module == "MyBehaviour"
+      assert result.function == "process/2"
+    end
+
+    test "extracts behaviour and function for callback_spec_type_mismatch warnings" do
+      # callback_spec_type_mismatch: [behaviour, function, arity, success_type, callback_type]
+      warning =
+        {:warn_callback, {~c"lib/foo.ex", 10},
+         {:callback_spec_type_mismatch, [Supervisor, :child_spec, 1, "actual", "expected"]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.module == "Supervisor"
+      assert result.function == "child_spec/1"
+    end
+
+    test "extracts behaviour and function for callback_not_exported warnings" do
+      # callback_not_exported: [behaviour, function, arity]
+      warning =
+        {:warn_callback, {~c"lib/foo.ex", 10},
+         {:callback_not_exported, [GenServer, :handle_cast, 2]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.module == "GenServer"
+      assert result.function == "handle_cast/2"
+    end
+
+    test "handles charlist module names in contract warnings" do
+      # Some dialyzer versions may return charlists for module names
+      warning =
+        {:warn_contract, {~c"lib/foo.ex", 10},
+         {:contract_diff, [~c"Elixir.MyModule", :func, 1, "c", "s"]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.module == "Elixir.MyModule"
+      assert result.function == "func/1"
+    end
   end
 
   describe "encode_warnings/1" do

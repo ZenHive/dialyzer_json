@@ -123,7 +123,7 @@ defmodule DialyzerJson.WarningEncoder do
     |> List.to_string()
     |> String.trim()
   catch
-    _, _ -> "#{warning_type}: #{inspect(args)}"
+    _kind, _reason -> "#{warning_type}: #{inspect(args)}"
   end
 
   @doc false
@@ -141,6 +141,28 @@ defmodule DialyzerJson.WarningEncoder do
     end
   end
 
+  # Contract warnings with [module, function, arity, ...] pattern
+  @contract_mfa_warnings [
+    :contract_diff,
+    :contract_subtype,
+    :contract_supertype,
+    :contract_with_opaque,
+    :extra_range,
+    :invalid_contract,
+    :missing_range,
+    :overlapping_contract
+  ]
+
+  # Callback warnings with [behaviour, function, arity, ...] pattern
+  @callback_bfa_warnings [
+    :callback_arg_type_mismatch,
+    :callback_missing,
+    :callback_not_exported,
+    :callback_spec_arg_type_mismatch,
+    :callback_spec_type_mismatch,
+    :callback_type_mismatch
+  ]
+
   @doc false
   # Extracts function name from warning args when available
   @spec extract_function(atom(), list()) :: String.t() | nil
@@ -155,14 +177,57 @@ defmodule DialyzerJson.WarningEncoder do
     "#{function}/#{length(args)}"
   end
 
+  # Contract warnings: [module, function, arity, ...]
+  defp extract_function(warning_type, [_module, function, arity | _rest])
+       when warning_type in @contract_mfa_warnings and is_integer(arity) do
+    "#{function}/#{arity}"
+  end
+
+  # Contract range has different order: [contract, module, function, arg_strings, ...]
+  defp extract_function(:contract_range, [_contract, _module, function, arg_strings | _rest])
+       when is_list(arg_strings) do
+    "#{function}/#{length(arg_strings)}"
+  end
+
+  # Callback warnings: [behaviour, function, arity, ...]
+  defp extract_function(warning_type, [_behaviour, function, arity | _rest])
+       when warning_type in @callback_bfa_warnings and is_integer(arity) do
+    "#{function}/#{arity}"
+  end
+
   defp extract_function(_warning_type, _args), do: nil
 
   @doc false
   # Extracts module name from warning args when available
   @spec extract_module(atom(), list()) :: String.t() | nil
   defp extract_module(:call, [module | _rest]) do
-    inspect(module)
+    format_module(module)
+  end
+
+  # Contract warnings: [module, function, arity, ...]
+  defp extract_module(warning_type, [module | _rest])
+       when warning_type in @contract_mfa_warnings do
+    format_module(module)
+  end
+
+  # Contract range has different order: [contract, module, function, ...]
+  defp extract_module(:contract_range, [_contract, module | _rest]) do
+    format_module(module)
+  end
+
+  # Callback warnings: [behaviour, function, arity, ...]
+  # Returns the behaviour module as the relevant module context
+  defp extract_module(warning_type, [behaviour | _rest])
+       when warning_type in @callback_bfa_warnings do
+    format_module(behaviour)
   end
 
   defp extract_module(_warning_type, _args), do: nil
+
+  @doc false
+  # Formats a module for JSON output, handling both atoms and charlists
+  @spec format_module(atom() | charlist()) :: String.t()
+  defp format_module(module) when is_atom(module), do: inspect(module)
+  defp format_module(module) when is_list(module), do: List.to_string(module)
+  defp format_module(module) when is_binary(module), do: module
 end

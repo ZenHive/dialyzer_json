@@ -8,7 +8,7 @@
 
 ## 🎯 Current Focus
 
-**Phase 2: Warning Classification** — Complete. `fix_hint` field added to all warnings.
+**Phase 3: Better Metadata Extraction** — Complete. Module and function extraction for all warning types.
 
 ### ✅ Recently Completed
 | Task | Description | Notes |
@@ -19,6 +19,7 @@
 | Group by warning | `--group-by-warning` clusters similar warnings | Pattern identification |
 | Warning classification | All 47 warning types classified | `DialyzerJson.FixHint` module |
 | fix_hint in output | Each warning has `fix_hint` field | Summary includes `by_fix_hint` |
+| Tasks 3-4 | Module/function extraction for contract/callback warnings | 8 contract + 6 callback types |
 
 ---
 
@@ -31,25 +32,12 @@ Added `fix_hint` field to help AI editors prioritize warnings.
 
 ---
 
-## Phase 3: Better Metadata Extraction [D:6/B:6 → Priority:1.0] 📋
+## Phase 3: Better Metadata Extraction ✅
 
-Extract more structured data from warning arguments.
+Extended module and function extraction to cover all warning types.
 
-### Task 3: Extract module for all warning types [D:5/B:5 → Priority:1.0] 📋
-Currently module extraction only works for `:call` warnings. Extend to extract module from all warning types where applicable (callback warnings, contract warnings, etc.).
-
-Success criteria:
-- [ ] Module extracted from callback_* warnings
-- [ ] Module extracted from contract_* warnings
-- [ ] Tests for each warning type with module info
-
-### Task 4: Extract function for all warning types [D:5/B:5 → Priority:1.0] 📋
-Currently function extraction only works for `:no_return` and `:call`. Extend to all warning types that reference functions.
-
-Success criteria:
-- [ ] Function extracted from guard_fail warnings
-- [ ] Function extracted from pattern_match warnings
-- [ ] Tests for each warning type with function info
+- **Task 3**: Module extracted from 8 contract warning types and 6 callback warning types ✅
+- **Task 4**: Function extracted from contract and callback warnings (guard_fail and pattern_match don't contain function info) ✅
 
 ---
 

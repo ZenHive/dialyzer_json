@@ -55,3 +55,28 @@ Completed roadmap tasks. For upcoming work, see [ROADMAP.md](ROADMAP.md).
 **Files created:**
 - `lib/dialyzer_json/fix_hint.ex` - Warning type classification
 - `test/dialyzer_json/fix_hint_test.exs` - Classification tests
+
+---
+
+## Phase 3: Better Metadata Extraction
+
+### Tasks 3-4: Extract module and function for all warning types
+**Completed** | Session 3
+
+**What was done:**
+- Extended `extract_module/2` to handle contract and callback warnings
+- Extended `extract_function/2` to handle contract and callback warnings
+- Added 11 new test cases for comprehensive coverage
+
+**Warning patterns now supported:**
+
+| Pattern | Warning Types | Module Source | Function Source |
+|---------|---------------|---------------|-----------------|
+| `[module, function, arity, ...]` | contract_diff, contract_subtype, contract_supertype, contract_with_opaque, extra_range, invalid_contract, missing_range, overlapping_contract | args[0] | args[1]/args[2] |
+| `[contract, module, function, arg_strings, ...]` | contract_range | args[1] | args[2]/length(args[3]) |
+| `[behaviour, function, arity, ...]` | callback_type_mismatch, callback_arg_type_mismatch, callback_missing, callback_not_exported, callback_spec_type_mismatch, callback_spec_arg_type_mismatch | args[0] (behaviour) | args[1]/args[2] |
+
+**Key decisions:**
+- For callback warnings, `module` field contains the behaviour module (e.g., `GenServer`) since that's the relevant context
+- Added `format_module/1` helper to handle both atom and charlist module names
+- Used module attributes (`@contract_mfa_warnings`, `@callback_bfa_warnings`) to group similar patterns
