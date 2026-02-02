@@ -56,6 +56,9 @@ defmodule Mix.Tasks.Dialyzer.Json do
 
   alias DialyzerJson.WarningEncoder
 
+  # Exit code when dialyzer finds warnings (standard convention: 2 = warnings found)
+  @exit_code_warnings_found 2
+
   @impl Mix.Task
   @spec run([String.t()]) :: :ok | no_return()
   def run(args) do
@@ -96,7 +99,7 @@ defmodule Mix.Tasks.Dialyzer.Json do
 
       opts[:quiet] ->
         # In quiet mode, exit silently - the exit code indicates failure
-        System.halt(2)
+        System.halt(@exit_code_warnings_found)
 
       true ->
         Mix.raise("Dialyzer found #{length(warnings)} warning(s)")

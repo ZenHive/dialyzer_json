@@ -115,12 +115,15 @@ defmodule DialyzerJson.WarningEncoder do
   end
 
   @doc false
-  # Formats the raw message using dialyzer's built-in formatting
+  # Formats the raw message using dialyzer's built-in formatting.
+  # Falls back to inspect-based format if dialyzer can't format the warning.
   @spec format_raw_message(atom(), list()) :: String.t()
   defp format_raw_message(warning_type, args) do
     :dialyzer.format_warning({:warn, {~c"", 0}, {warning_type, args}})
     |> List.to_string()
     |> String.trim()
+  catch
+    _, _ -> "#{warning_type}: #{inspect(args)}"
   end
 
   @doc false

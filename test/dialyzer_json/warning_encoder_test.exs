@@ -66,6 +66,31 @@ defmodule DialyzerJson.WarningEncoderTest do
       assert result.function == nil
     end
 
+    test "extracts function and module for call warnings" do
+      # Use valid dialyzer call warning format:
+      # {:call, [Module, Function, ArgTypes, ArgNs, FailReason, SigArgs, SigRet, Contract]}
+      warning =
+        {:warn_failing_call, {~c"lib/foo.ex", 10},
+         {:call,
+          [
+            SomeModule,
+            :my_func,
+            [:any, :any, :any],
+            [1, 2, 3],
+            :only_sig,
+            "(any(), any(), any())",
+            "any()",
+            :none
+          ]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.function == "my_func/3"
+      assert result.module == "SomeModule"
+      assert result.warning_type == "call"
+      assert result.fix_hint == "code"
+    end
+
     test "includes fix_hint for code warnings" do
       warning =
         {:warn_return_no_exit, {~c"lib/foo.ex", 10}, {:no_return, [:only_normal, :bar, 2]}}
