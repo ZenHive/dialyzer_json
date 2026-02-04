@@ -4,31 +4,55 @@ defmodule Mix.Tasks.Dialyzer.Json do
   @moduledoc """
   Runs dialyzer and outputs warnings as JSON.
 
-  This task wraps dialyxir's dialyzer task and transforms the output to JSON,
-  optimized for AI code editors (Claude Code, Cursor, etc.).
+  This task wraps dialyxir's PLT building but calls `:dialyzer.run/1` directly,
+  transforming raw warnings to structured JSON optimized for AI code editors
+  (Claude Code, Cursor, etc.).
 
-  ## Usage
+  ## Quick Start
 
-      mix dialyzer.json
-      mix dialyzer.json --quiet
+      # Health check - see summary counts
+      mix dialyzer.json --quiet --summary-only | jq '.summary'
+
+      # Find real bugs (fix_hint: "code")
+      mix dialyzer.json --quiet | jq '.warnings[] | select(.fix_hint == "code")'
+
+      # Fix issues, then re-run to verify
+      mix dialyzer.json --quiet --summary-only
+
+  ## When to Use This vs `mix dialyzer`
+
+  | Use Case | Command |
+  |----------|---------|
+  | Human reading warnings | `mix dialyzer` |
+  | AI parsing warnings | `mix dialyzer.json --quiet` |
+  | CI/CD pipelines | `mix dialyzer.json --quiet --output warnings.json` |
+  | Quick status check | `mix dialyzer.json --quiet --summary-only` |
 
   ## Options
 
-    * `--quiet` - Suppress non-JSON output for clean piping
-    * `--summary-only` - Output only counts by warning type, no details
-    * `--group-by-warning` - Group warnings by type in output
-    * `--group-by-file` - Group warnings by file path in output
-    * `--output FILE` - Write JSON to file instead of stdout
-    * `--compact` - Output as JSONL (one JSON object per line)
-    * `--filter-type TYPE` - Only include warnings of TYPE (can be repeated)
+    * `--quiet` - Suppress non-JSON output (always use for parsing)
+    * `--summary-only` - Counts only, no individual warnings
+    * `--group-by-warning` - Group warnings by type
+    * `--group-by-file` - Group warnings by file path
+    * `--filter-type TYPE` - Only show specific types (repeatable, OR logic)
+    * `--compact` - JSONL output (one warning per line)
+    * `--output FILE` - Write to file instead of stdout
+    * `--ignore-exit-status` - Don't fail on warnings (exit 0)
 
   ## Output Format
 
-  The output is a JSON object with:
+  Full output includes metadata and summary:
 
       {
-        "warnings": [...],      // Array of warning objects
-        "summary": {            // Summary statistics
+        "metadata": {
+          "schema_version": "1.0",
+          "dialyzer_version": "5.4",
+          "elixir_version": "1.19.4",
+          "otp_version": "28",
+          "run_at": "2026-02-02T07:00:03Z"
+        },
+        "warnings": [...],
+        "summary": {
           "total": 5,
           "by_type": {"no_return": 2, "call": 3},
           "by_fix_hint": {"code": 4, "spec": 1}
@@ -49,10 +73,58 @@ defmodule Mix.Tasks.Dialyzer.Json do
         "fix_hint": "code"
       }
 
-  The `fix_hint` field indicates the likely fix category:
-  - `"spec"` - Likely needs typespec fix
-  - `"code"` - Likely a real bug
-  - `"pattern"` - Common safe-to-ignore pattern
+  With `--group-by-warning`, warnings are grouped by type:
+
+      {"warnings": {"no_return": [...], "call": [...]}, ...}
+
+  With `--group-by-file`, warnings are grouped by file:
+
+      {"groups": [{"file": "lib/foo.ex", "count": 3, "warnings": [...]}], ...}
+
+  ## Fix Hint Guide
+
+  The `fix_hint` field tells you what action to take:
+
+  | Hint | Meaning | Action |
+  |------|---------|--------|
+  | `"code"` | Likely a real bug | **Fix immediately** - unreachable code, impossible patterns |
+  | `"spec"` | Typespec mismatch | Fix the `@spec` - code is probably correct |
+  | `"pattern"` | Common safe-to-ignore | Often intentional - third-party behaviours |
+  | `"unknown"` | Unrecognized warning | Investigate manually |
+
+  **Priority order:** `code` > `spec` > `pattern`
+
+  ## Common jq Recipes
+
+      # Find all code bugs
+      mix dialyzer.json --quiet | jq '.warnings[] | select(.fix_hint == "code")'
+
+      # Most common warning types
+      mix dialyzer.json --quiet | jq '.summary.by_type | to_entries | sort_by(-.value)'
+
+      # Warnings in a specific file
+      mix dialyzer.json --quiet | jq '.warnings[] | select(.file == "lib/my_module.ex")'
+
+      # Count warnings per file
+      mix dialyzer.json --quiet | jq '.warnings | group_by(.file) | map({file: .[0].file, count: length})'
+
+  ## Exit Codes
+
+  | Code | Meaning |
+  |------|---------|
+  | `0` | No warnings found |
+  | `2` | Warnings found |
+  | Other | Error occurred |
+
+  Use `--ignore-exit-status` to always exit 0 (useful for CI that shouldn't fail on warnings).
+
+  ## Tips
+
+  1. **Always use `--quiet`** for parsing - suppresses dialyzer progress output
+  2. **Pipe to jq** for filtering and formatting
+  3. **Use `--compact`** for large warning sets or streaming
+  4. **Use `--filter-type`** to focus on specific warning categories
+  5. **Check `fix_hint`** before fixing - `"pattern"` warnings are often intentional
   """
 
   use Mix.Task
