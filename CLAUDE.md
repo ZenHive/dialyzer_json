@@ -37,6 +37,8 @@ Where `fix_hint` is one of: `"spec"` (likely needs typespec fix), `"code"` (like
 - `--group-by-file` - Cluster warnings by file
 - `--filter-type TYPE` - Filter to specific warning types (repeatable)
 - `--compact` - JSONL output (one warning per line)
+- `--output FILE` - Write JSON to file instead of stdout
+- `--ignore-exit-status` - Always exit 0 (useful for CI)
 
 ## Commands
 
@@ -71,9 +73,19 @@ lib/
 ### Key Design Decisions
 
 - **Uses dialyxir's PLT/files** but calls `:dialyzer.run/1` directly for raw warnings
-- **Runtime checks for dialyxir modules** (`Code.ensure_loaded?/1`) to avoid compile-time warnings when used as path dependency
+- **Runtime `apply/3` for dialyxir calls** — `run_dialyzer/0` and `get_dialyxir_warning_module/1` use `apply(Dialyxir.Project, ...)` and `apply(Dialyxir.Warnings, ...)` with `credo:disable` comments. This avoids compile-time warnings when consumers use this as a path dependency. Do not refactor these to direct calls.
 - **Leverages dialyxir's warning modules** for friendly `message` field when available, falls back to raw dialyzer formatting
 - **Module/function extraction** varies by warning type (contract warnings have MFA pattern, callback warnings have BFA pattern)
+- **Exit codes**: 0 = no warnings, 2 = warnings found. In `--quiet` mode, uses `System.halt/1` for silent exit; otherwise raises via `Mix.raise/1`
+- **Stdout buffering in quiet mode**: When `--quiet` is used without `--output`, JSON is buffered to a temp file and written after dialyzer finishes, preventing stdout pollution from corrupting JSON output
+
+### Testing Conventions
+
+Tests construct raw dialyzer warning tuples directly rather than running dialyzer. The tuple format is `{tag, {file, location}, {warning_type, args}}` where:
+- `tag` is an atom like `:warn_return_no_exit`, `:warn_contract`, `:warn_callback`, `:warn_failing_call`
+- `file` is a charlist (`~c"lib/foo.ex"`) or binary
+- `location` is a line number or `{line, column}` tuple
+- `args` structure varies by `warning_type` — check existing tests for patterns
 
 ## Installation
 
