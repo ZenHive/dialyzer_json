@@ -2,11 +2,12 @@ defmodule DialyzerJson.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/ZenHive/dialyzer_json"
+  @version ".version" |> File.read!() |> String.trim()
 
   def project do
     [
       app: :dialyzer_json,
-      version: "0.1.1",
+      version: @version,
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -35,7 +36,7 @@ defmodule DialyzerJson.MixProject do
     [
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
-      files: ~w(lib .formatter.exs mix.exs README.md CHANGELOG.md LICENSE AGENTS.md)
+      files: ~w(lib .formatter.exs mix.exs .version README.md CHANGELOG.md LICENSE AGENTS.md)
     ]
   end
 
