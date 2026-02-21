@@ -237,6 +237,56 @@ defmodule DialyzerJson.WarningEncoderTest do
       assert result.module == "Elixir.MyModule"
       assert result.function == "func/1"
     end
+
+    test "handles non-standard location format with fallback" do
+      warning = {:warn_return_no_exit, {~c"lib/foo.ex", :unknown}, {:no_return, [:only_normal]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.line == 0
+      assert result.column == nil
+    end
+
+    test "handles non-standard file format with fallback" do
+      warning = {:warn_return_no_exit, {123, 10}, {:no_return, [:only_normal]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.file == ""
+    end
+
+    test "falls back to raw message when dialyxir module unavailable" do
+      # Use a warning type that dialyxir doesn't have a module for
+      warning =
+        {:warn_unknown, {~c"lib/foo.ex", 10}, {:completely_unknown_type, [:some_arg]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert is_binary(result.message)
+      assert is_binary(result.raw_message)
+      # When no dialyxir module, message falls back to raw_message
+      assert result.message == result.raw_message
+    end
+
+    test "handles binary module names in call warnings" do
+      warning =
+        {:warn_failing_call, {~c"lib/foo.ex", 10},
+         {:call,
+          [
+            "StringModule",
+            :my_func,
+            [:any],
+            [1],
+            :only_sig,
+            "(any())",
+            "any()",
+            :none
+          ]}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.module == "StringModule"
+    end
   end
 
   describe "encode_warnings/1" do
