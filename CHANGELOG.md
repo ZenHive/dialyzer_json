@@ -4,6 +4,24 @@ Completed roadmap tasks. For upcoming work, see [ROADMAP.md](ROADMAP.md).
 
 ---
 
+## [0.2.0] - 2026-03-21
+
+### Added
+- `.dialyzer_ignore.exs` support — warnings matching the project's ignore file are now filtered out, matching dialyxir's behavior
+- `skipped` field in summary output showing how many warnings were filtered by the ignore file
+- Respects dialyxir's `dialyzer_flags` and `dialyzer_removed_defaults` configuration for warning flags
+
+### Changed
+- Warning flags now match dialyxir's logic exactly instead of hardcoding `[:unknown]`
+- Added tidewave alias for local MCP development (port 4002)
+
+## [0.1.1] - 2026-02-02
+
+### Added
+- Initial hex.pm release with full feature set (see Phase 1-5 below)
+
+---
+
 ## Phase 1: Core Foundation
 
 ### Initial Implementation

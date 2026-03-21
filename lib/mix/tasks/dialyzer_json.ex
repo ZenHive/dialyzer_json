@@ -54,6 +54,7 @@ defmodule Mix.Tasks.Dialyzer.Json do
         "warnings": [...],
         "summary": {
           "total": 5,
+          "skipped": 0,
           "by_type": {"no_return": 2, "call": 3},
           "by_fix_hint": {"code": 4, "spec": 1}
         }
@@ -154,10 +155,14 @@ defmodule Mix.Tasks.Dialyzer.Json do
     ensure_plt!()
 
     # Run dialyzer and get warnings
-    warnings = run_dialyzer()
+    raw_warnings = run_dialyzer()
+
+    # Filter ignored warnings (.dialyzer_ignore.exs)
+    filter_map = load_filter_map()
+    {warnings, skipped} = apply_ignore_filter(raw_warnings, filter_map)
 
     # Encode to JSON
-    encoded = encode_output(warnings, opts)
+    encoded = encode_output(warnings, Keyword.put(opts, :skipped, skipped))
 
     # Output
     output_json(encoded, opts)
@@ -253,19 +258,75 @@ defmodule Mix.Tasks.Dialyzer.Json do
   end
 
   @doc false
+  # Filters raw warnings against the project's ignore file (.dialyzer_ignore.exs).
+  # Returns {kept_warnings, skipped_count}.
+  @spec apply_ignore_filter([WarningEncoder.warning()], struct()) ::
+          {[WarningEncoder.warning()], non_neg_integer()}
+  def apply_ignore_filter(warnings, filter_map) do
+    # credo:disable-for-next-line Credo.Check.Refactor.Apply
+    if apply(Dialyxir.FilterMap, :filters, [filter_map]) == [] do
+      {warnings, 0}
+    else
+      {kept, skipped} =
+        Enum.reduce(warnings, {[], 0}, &partition_warning(&1, &2, filter_map))
+
+      {Enum.reverse(kept), skipped}
+    end
+  end
+
+  @doc false
+  # Checks a single warning against the filter map and partitions into kept/skipped
+  @spec partition_warning(
+          WarningEncoder.warning(),
+          {[WarningEncoder.warning()], non_neg_integer()},
+          struct()
+        ) ::
+          {[WarningEncoder.warning()], non_neg_integer()}
+  defp partition_warning(warning, {kept_acc, skipped_acc}, filter_map) do
+    # credo:disable-for-next-line Credo.Check.Refactor.Apply
+    {should_skip, _matching} = apply(Dialyxir.Project, :filter_warning?, [warning, filter_map])
+
+    if should_skip do
+      {kept_acc, skipped_acc + 1}
+    else
+      {[warning | kept_acc], skipped_acc}
+    end
+  end
+
+  @doc false
+  # Loads the FilterMap from the project's ignore_warnings config
+  @spec load_filter_map() :: struct()
+  defp load_filter_map do
+    # credo:disable-for-next-line Credo.Check.Refactor.Apply
+    apply(Dialyxir.Project, :filter_map, [[]])
+  end
+
+  @doc false
+  # Computes warning flags matching dialyxir's logic:
+  # transform(raw_opts) ++ (@default_warnings -- removed_defaults)
+  @spec build_warning_flags([atom()], [atom()]) :: [atom()]
+  def build_warning_flags(flags, removed_defaults) do
+    flags ++ ([:unknown] -- removed_defaults)
+  end
+
+  @doc false
   # Runs dialyzer and returns the list of warnings
   @spec run_dialyzer() :: [WarningEncoder.warning()]
   defp run_dialyzer do
     # Runtime calls to avoid compile-time warnings when used as a path dependency
-    # credo:disable-for-lines:2 Credo.Check.Refactor.Apply
+    # credo:disable-for-lines:4 Credo.Check.Refactor.Apply
     plt_file = apply(Dialyxir.Project, :plt_file, [])
     files = apply(Dialyxir.Project, :dialyzer_files, [])
+    flags = apply(Dialyxir.Project, :dialyzer_flags, [])
+    removed_defaults = apply(Dialyxir.Project, :dialyzer_removed_defaults, [])
+
+    warnings = build_warning_flags(flags, removed_defaults)
 
     args = [
       check_plt: false,
       init_plt: String.to_charlist(plt_file),
       files: files,
-      warnings: [:unknown]
+      warnings: warnings
     ]
 
     try do
@@ -288,6 +349,7 @@ defmodule Mix.Tasks.Dialyzer.Json do
 
     summary = %{
       total: length(encoded_warnings),
+      skipped: Keyword.get(opts, :skipped, 0),
       by_type: count_by_type(encoded_warnings),
       by_fix_hint: count_by_fix_hint(encoded_warnings)
     }

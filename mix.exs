@@ -14,7 +14,8 @@ defmodule DialyzerJson.MixProject do
       dialyzer: dialyzer(),
       description: description(),
       package: package(),
-      source_url: @source_url
+      source_url: @source_url,
+      aliases: aliases()
     ]
   end
 
@@ -44,6 +45,15 @@ defmodule DialyzerJson.MixProject do
   def application do
     [
       extra_applications: [:logger]
+    ]
+  end
+
+  defp aliases do
+    [
+      # Port 4002 to avoid conflict with consumer projects on 4001
+      tidewave: [
+        "run --no-halt -e 'Agent.start(fn -> Bandit.start_link(plug: Tidewave, port: 4002) end)'"
+      ]
     ]
   end
 

@@ -404,6 +404,127 @@ defmodule Mix.Tasks.Dialyzer.JsonTest do
     end
   end
 
+  describe "apply_ignore_filter/2" do
+    test "returns all warnings and 0 skipped with empty filter map" do
+      warnings = [
+        {:warn_return_no_exit, {~c"lib/foo.ex", 10}, {:no_return, [:only_normal, :foo, 1]}}
+      ]
+
+      filter_map = %Dialyxir.FilterMap{}
+
+      {kept, skipped} = Task.apply_ignore_filter(warnings, filter_map)
+
+      assert kept == warnings
+      assert skipped == 0
+    end
+
+    test "filters matching warnings by file and warning type" do
+      warnings = [
+        {:warn_return_no_exit, {~c"lib/foo.ex", 10}, {:no_return, [:only_normal, :foo, 1]}},
+        {:warn_return_no_exit, {~c"lib/bar.ex", 20}, {:no_return, [:only_normal, :bar, 2]}}
+      ]
+
+      filter_map = %Dialyxir.FilterMap{
+        counters: %{{"lib/foo.ex", :no_return} => 0}
+      }
+
+      {kept, skipped} = Task.apply_ignore_filter(warnings, filter_map)
+
+      assert length(kept) == 1
+      assert skipped == 1
+
+      [{_, {file, _}, _}] = kept
+      assert file == ~c"lib/bar.ex"
+    end
+
+    test "filters all warnings when all match" do
+      warnings = [
+        {:warn_return_no_exit, {~c"lib/foo.ex", 10}, {:no_return, [:only_normal, :foo, 1]}},
+        {:warn_return_no_exit, {~c"lib/foo.ex", 20}, {:no_return, [:only_normal, :bar, 2]}}
+      ]
+
+      filter_map = %Dialyxir.FilterMap{
+        counters: %{{"lib/foo.ex", :no_return} => 0}
+      }
+
+      {kept, skipped} = Task.apply_ignore_filter(warnings, filter_map)
+
+      assert kept == []
+      assert skipped == 2
+    end
+
+    test "filters by file only" do
+      warnings = [
+        {:warn_return_no_exit, {~c"lib/foo.ex", 10}, {:no_return, [:only_normal, :foo, 1]}},
+        {:warn_failing_call, {~c"lib/foo.ex", 20},
+         {:call, [:erlang, :+, [1, :a], [1, 2], :error, :only_contract]}},
+        {:warn_return_no_exit, {~c"lib/bar.ex", 30}, {:no_return, [:only_normal, :bar, 2]}}
+      ]
+
+      filter_map = %Dialyxir.FilterMap{
+        counters: %{{"lib/foo.ex"} => 0}
+      }
+
+      {kept, skipped} = Task.apply_ignore_filter(warnings, filter_map)
+
+      assert length(kept) == 1
+      assert skipped == 2
+
+      [{_, {file, _}, _}] = kept
+      assert file == ~c"lib/bar.ex"
+    end
+  end
+
+  describe "encode_output/2 skipped field" do
+    test "includes skipped count in summary when provided" do
+      raw_warnings = [
+        {:warn_return_no_exit, {~c"lib/foo.ex", 10}, {:no_return, [:only_normal, :foo, 1]}}
+      ]
+
+      result = Task.encode_output(raw_warnings, skipped: 3)
+
+      assert result.summary.skipped == 3
+    end
+
+    test "defaults skipped to 0 in summary" do
+      raw_warnings = [
+        {:warn_return_no_exit, {~c"lib/foo.ex", 10}, {:no_return, [:only_normal, :foo, 1]}}
+      ]
+
+      result = Task.encode_output(raw_warnings, [])
+
+      assert result.summary.skipped == 0
+    end
+
+    test "skipped is included in summary-only mode" do
+      raw_warnings = [
+        {:warn_return_no_exit, {~c"lib/foo.ex", 10}, {:no_return, [:only_normal, :foo, 1]}}
+      ]
+
+      result = Task.encode_output(raw_warnings, summary_only: true, skipped: 5)
+
+      assert result.summary.skipped == 5
+    end
+  end
+
+  describe "build_warning_flags/2" do
+    test "includes :unknown by default" do
+      assert Task.build_warning_flags([], []) == [:unknown]
+    end
+
+    test "removes :unknown when in removed_defaults" do
+      assert Task.build_warning_flags([], [:unknown]) == []
+    end
+
+    test "appends flags from dialyxir config" do
+      assert Task.build_warning_flags([:no_return, :call], []) == [:no_return, :call, :unknown]
+    end
+
+    test "combines flags and removed_defaults" do
+      assert Task.build_warning_flags([:no_return], [:unknown]) == [:no_return]
+    end
+  end
+
   describe "build_compact_output/1" do
     test "with warnings produces JSONL" do
       data = %{
