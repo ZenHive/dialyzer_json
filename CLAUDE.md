@@ -129,14 +129,21 @@ end
 
 **Exception:** Trivial one-liner helpers don't need comments - the code is self-documenting.
 
-@include ~/.claude/includes/across-instances.md
-@include ~/.claude/includes/critical-rules.md
-@include ~/.claude/includes/task-prioritization.md
-@include ~/.claude/includes/task-writing.md
-@include ~/.claude/includes/code-style.md
-@include ~/.claude/includes/development-philosophy.md
-@include ~/.claude/includes/elixir-patterns.md
-@include ~/.claude/includes/library-design.md
+@~/.claude/includes/across-instances.md
+@~/.claude/includes/critical-rules.md
+@~/.claude/includes/task-prioritization.md
+@~/.claude/includes/task-writing.md
+@~/.claude/includes/web-command.md
+@~/.claude/includes/code-style.md
+@~/.claude/includes/development-philosophy.md
+@~/.claude/includes/documentation-guidelines.md
+@~/.claude/includes/agent-economy.md
+@~/.claude/includes/elixir-patterns.md
+@~/.claude/includes/elixir-setup.md
+@~/.claude/includes/development-commands.md
+@~/.claude/includes/ex-unit-json.md
+@~/.claude/includes/dialyzer-json.md
+@~/.claude/includes/library-design.md
 
 ## Git Commit Configuration
 
