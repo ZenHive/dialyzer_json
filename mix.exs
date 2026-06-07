@@ -50,9 +50,9 @@ defmodule DialyzerJson.MixProject do
 
   defp aliases do
     [
-      # Port 4002 to avoid conflict with consumer projects on 4001
+      # Port 4022 — registry-assigned (~/.claude/tidewave-ports.md); 4002 collided with ccxt_extract
       tidewave: [
-        "run --no-halt -e 'Agent.start(fn -> Bandit.start_link(plug: Tidewave, port: 4002) end)'"
+        "run --no-halt -e 'Agent.start(fn -> Bandit.start_link(plug: Tidewave, port: 4022) end)'"
       ]
     ]
   end
@@ -63,13 +63,16 @@ defmodule DialyzerJson.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:jason, "~> 1.4"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
-      {:doctor, "~> 0.21", only: [:dev, :test], runtime: false},
-      {:styler, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:ex_unit_json, "~> 0.3", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.35", only: :dev, runtime: false},
-      {:tidewave, "~> 0.1", only: :dev},
-      {:bandit, "~> 1.0", only: :dev}
+      {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false},
+      {:doctor, "~> 0.23", only: [:dev, :test], runtime: false},
+      {:styler, "~> 1.11", only: [:dev, :test], runtime: false},
+      {:ex_unit_json, "~> 0.5", only: [:dev, :test], runtime: false},
+      {:reach, "~> 2.7", only: [:dev, :test], runtime: false},
+      {:ex_ast, "~> 0.12.0", only: [:dev, :test], runtime: false},
+      {:boxart, "~> 0.3.3", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
+      {:tidewave, "~> 0.5", only: :dev},
+      {:bandit, "~> 1.12", only: :dev}
     ]
   end
 end
