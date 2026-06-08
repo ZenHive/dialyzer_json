@@ -129,21 +129,15 @@ end
 
 **Exception:** Trivial one-liner helpers don't need comments - the code is self-documenting.
 
-@~/.claude/includes/across-instances.md
+<!--
+  Selective-load (Opus 4.8): eager floor is critical-rules only. Everything else
+  (task-prioritization, task-writing, code-style, development-philosophy,
+  development-commands, ex-unit-json, dialyzer-json, elixir-setup, agent-economy,
+  web-command) is skill-on-demand via the enabled elixir@/tasks@/review@/workflow@
+  zenhive plugins — @-importing them here double-loads. Re-add a single @-import
+  per-surface only if Opus visibly fails on it. See ~/.claude/setup-guide.md.
+-->
 @~/.claude/includes/critical-rules.md
-@~/.claude/includes/task-prioritization.md
-@~/.claude/includes/task-writing.md
-@~/.claude/includes/web-command.md
-@~/.claude/includes/code-style.md
-@~/.claude/includes/development-philosophy.md
-@~/.claude/includes/documentation-guidelines.md
-@~/.claude/includes/agent-economy.md
-@~/.claude/includes/elixir-patterns.md
-@~/.claude/includes/elixir-setup.md
-@~/.claude/includes/development-commands.md
-@~/.claude/includes/ex-unit-json.md
-@~/.claude/includes/dialyzer-json.md
-@~/.claude/includes/library-design.md
 
 ## Git Commit Configuration
 
