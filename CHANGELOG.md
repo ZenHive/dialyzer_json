@@ -4,6 +4,14 @@ Completed roadmap tasks. For upcoming work, see [ROADMAP.md](ROADMAP.md).
 
 ---
 
+## [0.2.1] - 2026-06-08
+
+### Fixed
+- Encoding no longer crashes when dialyxir's `format_short/1` throws on exotic type tokens (e.g. an Ash 3.27 / OTP 29 unknown-type warning for `'Elixir.Ash.Resource':record/0`, where Erlex's lexer throws on the token). Such warnings now degrade gracefully to the raw dialyzer message instead of aborting the whole encode.
+
+### Changed
+- Updated and pinned dev/test dependencies (bandit, credo, doctor, ex_doc, ex_unit_json, jason)
+
 ## [0.2.0] - 2026-03-21
 
 ### Added

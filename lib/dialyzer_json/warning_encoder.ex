@@ -110,8 +110,20 @@ defmodule DialyzerJson.WarningEncoder do
   defp format_message(warning_type, args) do
     case get_dialyxir_warning_module(warning_type) do
       nil -> format_raw_message(warning_type, args)
-      module -> module.format_short(args)
+      module -> safe_format_short(module, warning_type, args)
     end
+  end
+
+  @doc false
+  # dialyxir's format_short/1 lexes type tokens through Erlex, which THROWS on
+  # exotic tokens (e.g. an unknown-type warning for `'Elixir.Ash.Resource':record/0`
+  # on Ash 3.27 / OTP 29). An uncaught throw here killed the whole encode. Degrade
+  # to the raw dialyzer message instead — same safety net format_raw_message/2 gives.
+  @spec safe_format_short(module(), atom(), list()) :: String.t()
+  defp safe_format_short(module, warning_type, args) do
+    module.format_short(args)
+  catch
+    _kind, _reason -> format_raw_message(warning_type, args)
   end
 
   @doc false

@@ -268,6 +268,27 @@ defmodule DialyzerJson.WarningEncoderTest do
       assert result.message == result.raw_message
     end
 
+    test "degrades to raw message when dialyxir format_short throws (Erlex lexing crash)" do
+      # Regression: an Ash 3.27 / OTP 29 unknown-type warning whose token is the
+      # full `'Elixir.Ash.Resource':record/0` makes Dialyxir.Warnings.UnknownType
+      # call Erlex.pretty_print/1, which THROWS {:error, :lexing, _} on the `/0`.
+      # Before the safe_format_short/3 guard this killed the entire encode.
+      # Built from a plain string (not a ~c sigil): the literal `:record/0` charlist
+      # sigil crashes Credo's own tokenizer, so we construct it at runtime.
+      crashing_token = String.to_charlist("'Elixir.Ash.Resource':record/0")
+      # Sanity-check the fixture still reproduces the upstream throw it guards against.
+      assert catch_throw(Erlex.pretty_print(crashing_token))
+
+      warning =
+        {:warn_unknown, {~c"lib/foo.ex", 12}, {:unknown_type, {crashing_token, ~c"record", 0}}}
+
+      result = WarningEncoder.encode_warning(warning)
+
+      assert result.warning_type == "unknown_type"
+      assert is_binary(result.message)
+      assert result.message != ""
+    end
+
     test "handles binary module names in call warnings" do
       warning =
         {:warn_failing_call, {~c"lib/foo.ex", 10},
