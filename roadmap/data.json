@@ -279,7 +279,7 @@
       "id": 10,
       "phase": 6,
       "bundle": "code_health",
-      "status": "pending",
+      "status": "done",
       "title": "Run Reach static-analysis sweep and act on findings",
       "scores": {
         "d": 1,
@@ -304,9 +304,13 @@
         "lib/mix/tasks/dialyzer_json.ex",
         "lib/dialyzer_json/warning_encoder.ex"
       ],
+      "shipped_in": "e378b63",
       "body": "Reach (reach/ex_ast/boxart) is now a dev/test dep. Run the sweep and act on real findings:\n\n  mix reach.check --smells\n  mix reach.map --hotspots --coupling --boundaries --min 2\n  mix reach.check --dead-code --candidates\n\nBaseline sweep (2026-06-08) found a clean codebase — no dead code, no cycles, low\ncoupling, no refactoring candidates — with two actionable items:\n  1. Manual frequency counting in lib/mix/tasks/dialyzer_json.ex (count_by_type/1\n     ~line 402, count_by_fix_hint/1 ~line 412) -> Enum.frequencies_by/2.\n  2. Two mixed-effect output functions (output_buffered_json/1 ~538, output_json/2\n     ~461). Inherent for output sinks — investigate, don't reflexively split.\n",
       "created_at": "2026-06-08",
+      "done_at": "2026-06-12",
       "scored_at": "2026-06-08",
+      "implemented": "Enum.frequencies_by/2 refactor; baseline sweep otherwise clean",
+      "delivered_by": "claude",
       "cross_repo": []
     }
   ]

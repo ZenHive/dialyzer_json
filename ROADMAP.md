@@ -13,11 +13,11 @@ AI-friendly JSON output for Dialyzer warnings, optimized for Claude Code and sim
 ## 🎯 Current Focus
 
 <!-- FOCUS:BEGIN -->
-**Focus phase:** 6 — Code Health (static analysis) (0 of 1 done · 0 in progress)
+**Focus phase:** 6 — Code Health (static analysis) (1 of 1 done · 0 in progress)
 
-**Last shipped:** no recent shipments
+**Last shipped:** Task 10 — Run Reach static-analysis sweep and act on findings on 2026-06-12
 
-**Up next:** Task 10 — Run Reach static-analysis sweep and act on findings [D:1/B:2/U:2 → Eff:2.0] 🎯
+**Up next:** none — focus phase complete or all blocked
 <!-- FOCUS:END -->
 
 ---
@@ -76,5 +76,5 @@ Static-analysis-driven (`mix reach.*`). Baseline sweep found a clean codebase; t
 <!-- TASKS:BEGIN phase=6 -->
 | Task | Status | Notes |
 |------|--------|-------|
-| Task 10 | ⬜ | 🎁 **code_health** · *DialyzerJson* · Run Reach static-analysis sweep and act on findings [D:1/B:2/U:2 → Eff:2.0] 🎯 |
+| Task 10 | ✅ | 🎁 **code_health** · *DialyzerJson* · Run Reach static-analysis sweep and act on findings [D:1/B:2/U:2 → Eff:2.0] 🎯 |
 <!-- TASKS:END -->

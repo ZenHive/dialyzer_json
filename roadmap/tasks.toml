@@ -178,14 +178,20 @@ scored_at = "2026-06-08"
 
 [[task]]
 id = 10
-bundle = "code_health"
 phase = 6
+bundle = "code_health"
+status = "done"
 title = "Run Reach static-analysis sweep and act on findings"
-status = "pending"
 scores = { d = 1, b = 2, u = 2 }
+acceptance_criteria = [
+  "count_by_type/1 and count_by_fix_hint/1 use Enum.frequencies_by/2; output shape unchanged (%{String.t() => non_neg_integer()}); existing tests pass",
+  "mix reach.check --smells reports 0 findings",
+  "Decision recorded on the two mixed-effect functions (split vs. leave-as-is + why)",
+]
+out_of_scope = ["Splitting output sinks purely to satisfy a clean boundary report"]
+touches = ["lib/mix/tasks/dialyzer_json.ex", "lib/dialyzer_json/warning_encoder.ex"]
 assignee = "claude"
 module = "DialyzerJson"
-touches = ["lib/mix/tasks/dialyzer_json.ex", "lib/dialyzer_json/warning_encoder.ex"]
 body = """
 Reach (reach/ex_ast/boxart) is now a dev/test dep. Run the sweep and act on real findings:
 
@@ -200,11 +206,9 @@ coupling, no refactoring candidates — with two actionable items:
   2. Two mixed-effect output functions (output_buffered_json/1 ~538, output_json/2
      ~461). Inherent for output sinks — investigate, don't reflexively split.
 """
-acceptance_criteria = [
-  "count_by_type/1 and count_by_fix_hint/1 use Enum.frequencies_by/2; output shape unchanged (%{String.t() => non_neg_integer()}); existing tests pass",
-  "mix reach.check --smells reports 0 findings",
-  "Decision recorded on the two mixed-effect functions (split vs. leave-as-is + why)",
-]
-out_of_scope = ["Splitting output sinks purely to satisfy a clean boundary report"]
+implemented = "Enum.frequencies_by/2 refactor; baseline sweep otherwise clean"
+delivered_by = "claude"
 created_at = "2026-06-08"
 scored_at = "2026-06-08"
+done_at = "2026-06-12"
+shipped_in = "e378b63"
