@@ -399,9 +399,7 @@ defmodule Mix.Tasks.Dialyzer.Json do
   # Counts warnings grouped by warning type
   @spec count_by_type([WarningEncoder.encoded_warning()]) :: %{String.t() => non_neg_integer()}
   def count_by_type(warnings) do
-    Enum.reduce(warnings, %{}, fn warning, acc ->
-      Map.update(acc, warning.warning_type, 1, &(&1 + 1))
-    end)
+    Enum.frequencies_by(warnings, & &1.warning_type)
   end
 
   @doc false
@@ -410,9 +408,7 @@ defmodule Mix.Tasks.Dialyzer.Json do
           String.t() => non_neg_integer()
         }
   def count_by_fix_hint(warnings) do
-    Enum.reduce(warnings, %{}, fn warning, acc ->
-      Map.update(acc, warning.fix_hint, 1, &(&1 + 1))
-    end)
+    Enum.frequencies_by(warnings, & &1.fix_hint)
   end
 
   @doc false
