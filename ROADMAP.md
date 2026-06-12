@@ -1,112 +1,80 @@
 # dialyzer_json Roadmap
 
-**Vision:** AI-friendly JSON output for Dialyzer warnings, optimized for Claude Code and similar tools.
+<!-- VISION:BEGIN -->
+AI-friendly JSON output for Dialyzer warnings, optimized for Claude Code and similar tools.
+<!-- VISION:END -->
 
-**Completed work:** See [CHANGELOG.md](CHANGELOG.md) for finished tasks.
+**Completed work:** Phases 1–5 are complete — see [CHANGELOG.md](CHANGELOG.md) for finished-task detail.
+
+> Managed by [rmap](https://github.com/ZenHive/rmap). Edit `roadmap/tasks.toml`, then `rmap render`. Content between marker pairs is generated; prose outside them is preserved.
 
 ---
 
 ## 🎯 Current Focus
 
-**Phase 5: Complete** — All planned features implemented. Ready for hex.pm release.
+<!-- FOCUS:BEGIN -->
+**Focus phase:** 6 — Code Health (static analysis) (0 of 1 done · 0 in progress)
 
-### ✅ Recently Completed
-| Task | Description | Notes |
-|------|-------------|-------|
-| Task 7 | `--group-by-file` flag | Groups by file path, array of {file, count, warnings} |
-| Task 6 | `exact_compare` → `"code"` | 1-line fix |
-| Task 5 | Top-level metadata | schema_version, versions, timestamp |
-| Task 8 | `--compact` JSONL output | One warning per line |
-| Task 9 | `--filter-type` flag | Repeatable, OR logic |
-| Basic JSON output | `mix dialyzer.json` outputs warnings as JSON | Reuses dialyxir PLT |
-| Quiet mode | `--quiet` suppresses non-JSON output | Clean piping to jq |
-| Summary mode | `--summary-only` for counts without details | Quick health check |
-| Group by warning | `--group-by-warning` clusters similar warnings | Pattern identification |
-| Warning classification | All 47 warning types classified | `DialyzerJson.FixHint` module |
-| fix_hint in output | Each warning has `fix_hint` field | Summary includes `by_fix_hint` |
-| Tasks 3-4 | Module/function extraction for contract/callback warnings | 8 contract + 6 callback types |
+**Last shipped:** no recent shipments
+
+**Up next:** Task 10 — Run Reach static-analysis sweep and act on findings [D:1/B:2/U:2 → Eff:2.0] 🎯
+<!-- FOCUS:END -->
 
 ---
+
+## Dependency Graph
+
+<!-- MERMAID:BEGIN -->
+```mermaid
+gantt
+    title dialyzer_json
+    dateFormat YYYY-MM-DD
+    %% no tasks with started_at yet
+```
+<!-- MERMAID:END -->
+
+---
+
+## Phase 1: Foundation ✅
+
+Basic JSON output, `--quiet`, `--summary-only`, `--group-by-warning`. See CHANGELOG.
+
+<!-- TASKS:BEGIN phase=1 -->
+> 0 tasks. See [CHANGELOG.md](CHANGELOG.md#phase-1-foundation-basic-json-output-quiet-summary-only-group-by-warning).
+<!-- TASKS:END -->
 
 ## Phase 2: Warning Classification ✅
 
-Added `fix_hint` field to help AI editors prioritize warnings.
-
-- **Task 1**: Classified all 47 dialyxir warning types into `"spec"`, `"code"`, `"pattern"` categories
-- **Task 2**: Added `fix_hint` to each warning and `by_fix_hint` to summary
-
----
+<!-- TASKS:BEGIN phase=2 -->
+> 2 tasks. See [CHANGELOG.md](CHANGELOG.md#phase-2-warning-classification-fix-hint).
+<!-- TASKS:END -->
 
 ## Phase 3: Better Metadata Extraction ✅
 
-Extended module and function extraction to cover all warning types.
+<!-- TASKS:BEGIN phase=3 -->
+> 2 tasks. See [CHANGELOG.md](CHANGELOG.md#phase-3-better-metadata-extraction).
+<!-- TASKS:END -->
 
-- **Task 3**: Module extracted from 8 contract warning types and 6 callback warning types ✅
-- **Task 4**: Function extracted from contract and callback warnings (guard_fail and pattern_match don't contain function info) ✅
+## Phase 4: Output Enhancements ✅
 
----
-
-## Phase 4: Output Enhancements
-
-### Task 5: Add top-level metadata to JSON output ✅
-Add metadata fields to the root JSON object for better tooling integration.
-
-Fields to add:
-- `schema_version`: e.g. "1.0" (for future compatibility)
-- `dialyzer_version`: from `:dialyzer` app version
-- `elixir_version`: from `System.version()`
-- `otp_version`: from `:erlang.system_info(:otp_release)`
-- `run_at`: ISO8601 timestamp (optional, include by default)
-
-Success criteria:
-- [x] All version fields present in output
-- [x] `run_at` is valid ISO8601 format
-- [x] Existing `warnings` and `summary` structure unchanged
-
-### Task 6: Extend fix_hint mapping for exact_compare ✅
-Map `exact_compare` warning type to `"code"` (currently falls through to unknown). These are actionable warnings about `==` vs `===` comparisons.
-
-Success criteria:
-- [x] `exact_compare` → `"code"` in FixHint module
-- [x] Test covers the mapping
-
-### Task 7: Add --group-by-file flag ✅
-Add `--group-by-file` flag to group warnings by file path instead of warning type.
-
-Output format:
-```json
-{
-  "groups": [
-    { "file": "lib/foo.ex", "count": 3, "warnings": [...] }
-  ],
-  "summary": { ... }
-}
-```
-
-Success criteria:
-- [x] `--group-by-file` groups warnings by file
-- [x] Each group has `file`, `count`, and `warnings` fields
-- [x] Default output (flat warnings) unchanged
-
-### Task 8: Add --compact flag for JSONL output ✅
-Add `--compact` flag that outputs one JSON object per line (JSONL format) instead of a single JSON array. Useful for streaming large warning sets.
-
-Success criteria:
-- [x] `--compact` outputs one warning per line
-- [x] Each line is valid JSON
-- [x] Summary on final line in compact mode
-
-### Task 9: Add --filter-type flag ✅
-Add `--filter-type TYPE` flag to output only warnings of a specific type. Can be repeated for multiple types.
-
-Success criteria:
-- [x] `--filter-type no_return` shows only no_return warnings
-- [x] Multiple `--filter-type` flags combine with OR logic
-- [x] Summary reflects filtered count
-
----
+<!-- TASKS:BEGIN phase=4 -->
+> 5 tasks. See [CHANGELOG.md](CHANGELOG.md#phase-4-output-enhancements).
+<!-- TASKS:END -->
 
 ## Phase 5: Documentation & Polish ✅
 
-> 3 tasks complete. See [CHANGELOG.md](CHANGELOG.md#phase-5-documentation--polish) for details.
-> Added: hex.pm metadata, AGENTS.md, comprehensive README examples.
+3 tasks complete — hex.pm metadata, AGENTS.md, comprehensive README examples. See [CHANGELOG.md](CHANGELOG.md#phase-5-documentation--polish).
+
+<!-- TASKS:BEGIN phase=5 -->
+> 0 tasks. See [CHANGELOG.md](CHANGELOG.md#phase-5-documentation-polish).
+<!-- TASKS:END -->
+
+## Phase 6: Code Health
+
+Static-analysis-driven (`mix reach.*`). Baseline sweep found a clean codebase; the one open task acts on the two surfaced findings.
+
+<!-- TASKS:BEGIN phase=6 -->
+| Task | Status | Notes |
+|------|--------|-------|
+| Task 10 | ⬜ | 🎁 **code_health** · *DialyzerJson* · Run Reach static-analysis sweep and act on findings [D:1/B:2/U:2 → Eff:2.0] 🎯 |
+<!-- TASKS:END -->

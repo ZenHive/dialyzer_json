@@ -1,0 +1,210 @@
+schema_version = 2
+project = "dialyzer_json"
+default_branch = "main"
+vision = "AI-friendly JSON output for Dialyzer warnings, optimized for Claude Code and similar tools."
+
+[focus]
+phase = 6
+
+# ── Phases ──────────────────────────────────────────────────────────────────
+# Phases 1–5 are complete; see CHANGELOG.md for finished-task detail.
+
+[phases.1]
+name = "Foundation (basic JSON output, --quiet, --summary-only, --group-by-warning)"
+order = 1
+status = "done"
+
+[phases.2]
+name = "Warning Classification (fix_hint)"
+order = 2
+status = "done"
+
+[phases.3]
+name = "Better Metadata Extraction"
+order = 3
+status = "done"
+
+[phases.4]
+name = "Output Enhancements"
+order = 4
+status = "done"
+
+[phases.5]
+name = "Documentation & Polish"
+order = 5
+status = "done"
+
+[phases.6]
+name = "Code Health (static analysis)"
+order = 6
+status = "pending"
+
+# ── Bundles ─────────────────────────────────────────────────────────────────
+
+[bundles.classification]
+phase = 2
+order = 1
+description = "fix_hint classification of warning types"
+
+[bundles.extraction]
+phase = 3
+order = 1
+description = "Module/function extraction from warning tuples"
+
+[bundles.output_flags]
+phase = 4
+order = 1
+description = "CLI output enhancement flags"
+
+[bundles.code_health]
+phase = 6
+order = 1
+description = "Static-analysis-driven code health"
+
+# ── Tasks ───────────────────────────────────────────────────────────────────
+
+[[task]]
+id = 1
+bundle = "classification"
+phase = 2
+title = "Classify all dialyxir warning types into spec/code/pattern"
+status = "done"
+scores = { d = 2, b = 3, u = 3 }
+body = "Classify all 47 dialyxir warning types into \"spec\", \"code\", \"pattern\" categories so AI editors can prioritize."
+implemented = "All 47 warning types classified in DialyzerJson.FixHint."
+created_at = "2026-06-08"
+scored_at = "2026-06-08"
+
+[[task]]
+id = 2
+bundle = "classification"
+phase = 2
+title = "Add fix_hint to each warning and by_fix_hint to summary"
+status = "done"
+scores = { d = 1, b = 3, u = 3 }
+body = "Add a fix_hint field to each warning and a by_fix_hint breakdown to the summary."
+implemented = "fix_hint present per warning; summary includes by_fix_hint."
+created_at = "2026-06-08"
+scored_at = "2026-06-08"
+
+[[task]]
+id = 3
+bundle = "extraction"
+phase = 3
+title = "Extract module from contract and callback warning types"
+status = "done"
+scores = { d = 2, b = 2, u = 2 }
+body = "Extend module extraction to cover the 8 contract warning types and 6 callback warning types."
+implemented = "Module extracted from 8 contract + 6 callback warning types."
+created_at = "2026-06-08"
+scored_at = "2026-06-08"
+
+[[task]]
+id = 4
+bundle = "extraction"
+phase = 3
+title = "Extract function from contract and callback warnings"
+status = "done"
+scores = { d = 2, b = 2, u = 2 }
+body = "Extract function from contract and callback warnings. guard_fail and pattern_match don't carry function info."
+implemented = "Function extracted from contract/callback warnings; guard_fail and pattern_match excluded (no function info in tuple)."
+created_at = "2026-06-08"
+scored_at = "2026-06-08"
+
+[[task]]
+id = 5
+bundle = "output_flags"
+phase = 4
+title = "Add top-level metadata to JSON output"
+status = "done"
+scores = { d = 1, b = 2, u = 2 }
+body = "Add root-level metadata: schema_version, dialyzer_version, elixir_version, otp_version, run_at (ISO8601)."
+acceptance_criteria = ["All version fields present", "run_at is valid ISO8601", "existing warnings/summary structure unchanged"]
+implemented = "Root metadata fields added (schema_version, versions, run_at)."
+created_at = "2026-06-08"
+scored_at = "2026-06-08"
+
+[[task]]
+id = 6
+bundle = "output_flags"
+phase = 4
+title = "Map exact_compare warning type to code"
+status = "done"
+scores = { d = 1, b = 1, u = 2 }
+body = "Map exact_compare (== vs ===) to \"code\" instead of falling through to unknown."
+acceptance_criteria = ["exact_compare -> code in FixHint", "test covers the mapping"]
+implemented = "exact_compare mapped to code; covered by test."
+created_at = "2026-06-08"
+scored_at = "2026-06-08"
+
+[[task]]
+id = 7
+bundle = "output_flags"
+phase = 4
+title = "Add --group-by-file flag"
+status = "done"
+scores = { d = 1, b = 2, u = 2 }
+body = "Add --group-by-file to group warnings by file path: array of {file, count, warnings}."
+acceptance_criteria = ["Groups by file", "each group has file/count/warnings", "default flat output unchanged"]
+implemented = "--group-by-file groups by file path into {file, count, warnings} objects."
+created_at = "2026-06-08"
+scored_at = "2026-06-08"
+
+[[task]]
+id = 8
+bundle = "output_flags"
+phase = 4
+title = "Add --compact flag for JSONL output"
+status = "done"
+scores = { d = 1, b = 2, u = 2 }
+body = "Add --compact to emit one JSON object per line (JSONL) for streaming large warning sets."
+acceptance_criteria = ["One warning per line", "each line valid JSON", "summary on final line"]
+implemented = "--compact emits JSONL, one warning per line, summary last."
+created_at = "2026-06-08"
+scored_at = "2026-06-08"
+
+[[task]]
+id = 9
+bundle = "output_flags"
+phase = 4
+title = "Add --filter-type flag"
+status = "done"
+scores = { d = 1, b = 2, u = 2 }
+body = "Add repeatable --filter-type TYPE to output only matching warning types (OR logic)."
+acceptance_criteria = ["--filter-type no_return shows only no_return", "multiple flags OR together", "summary reflects filtered count"]
+implemented = "--filter-type repeatable with OR logic; summary reflects filtered count."
+created_at = "2026-06-08"
+scored_at = "2026-06-08"
+
+[[task]]
+id = 10
+bundle = "code_health"
+phase = 6
+title = "Run Reach static-analysis sweep and act on findings"
+status = "pending"
+scores = { d = 1, b = 2, u = 2 }
+assignee = "claude"
+module = "DialyzerJson"
+touches = ["lib/mix/tasks/dialyzer_json.ex", "lib/dialyzer_json/warning_encoder.ex"]
+body = """
+Reach (reach/ex_ast/boxart) is now a dev/test dep. Run the sweep and act on real findings:
+
+  mix reach.check --smells
+  mix reach.map --hotspots --coupling --boundaries --min 2
+  mix reach.check --dead-code --candidates
+
+Baseline sweep (2026-06-08) found a clean codebase — no dead code, no cycles, low
+coupling, no refactoring candidates — with two actionable items:
+  1. Manual frequency counting in lib/mix/tasks/dialyzer_json.ex (count_by_type/1
+     ~line 402, count_by_fix_hint/1 ~line 412) -> Enum.frequencies_by/2.
+  2. Two mixed-effect output functions (output_buffered_json/1 ~538, output_json/2
+     ~461). Inherent for output sinks — investigate, don't reflexively split.
+"""
+acceptance_criteria = [
+  "count_by_type/1 and count_by_fix_hint/1 use Enum.frequencies_by/2; output shape unchanged (%{String.t() => non_neg_integer()}); existing tests pass",
+  "mix reach.check --smells reports 0 findings",
+  "Decision recorded on the two mixed-effect functions (split vs. leave-as-is + why)",
+]
+out_of_scope = ["Splitting output sinks purely to satisfy a clean boundary report"]
+created_at = "2026-06-08"
+scored_at = "2026-06-08"
